@@ -13,13 +13,13 @@
 | Deploy List      | 100%       |   一期开发    |
 | Deploy List Functions      | 100%       |   一期增量开发    |
 | Invoke           | 100%     |   一期开发    |
-| Invoke Local     | 0%       |   一期增量开发 |
+| Invoke Local     |-       |   - |
 | Logs             | 100%     |   一期开发    |
 | Login            | -        |   -    |
 | Metrics          | 100%       |   一期增量开发 |
 | Info             | 100%     |   一期开发    |
 | Rollback         | 100%      |   一期增量开发 |
-| Rollback Function| 0%       |   一期增量开发 |
+| Rollback Function| -      |   - |
 | Remove           | 100%     |   一期开发    |
 | Plugin List      | 100%     |   可以使用    |
 | Plugin Search    | 100%     |   可以使用    |
