@@ -297,7 +297,7 @@ class TencentProvider {
         };
 
         resource["Resources"]["default"] = functionList;
-        this.serverless.cli.log(JSON.stringify(resource));
+        // this.serverless.cli.log(JSON.stringify(resource));
         return resource
     }
 

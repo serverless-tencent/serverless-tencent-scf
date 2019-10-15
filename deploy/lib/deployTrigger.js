@@ -3,7 +3,7 @@ const tencentcloud    = require('tencentcloud-sdk-nodejs');
 const AbstractHandler = require('../../shared/handler');
 const models          = tencentcloud.scf.v20180416.Models;
 const _               = require('lodash');
-
+const util            = require('util');
 
 const Constants = {
     ScfTriggerTypeTimer: 'timer',
@@ -19,27 +19,46 @@ class DeployTrigger extends AbstractHandler {
     }
 
     async create(ns, oldEvents, funcObject, successFunc, failedFunc) {
-       
+
         const triggers = funcObject.Properties.Events;
         const triggerResults = [];
-        
         const len = _.size(triggers);
+
         for (let i = 0; i < len; i++) {
             if (_.isEmpty(triggers[i])) continue;
 
             const keys = Object.keys(triggers[i]);
             const trigger = triggers[i][keys[0]];
             const triggerName = keys[0];
-
             trigger.Type = trigger.Type.toString().toLocaleLowerCase();
             const oldEvent = _.find(oldEvents, (event) => {
+
+                if (event.Type == Constants.ScfTriggerTypeCkafka) {
+                    const fullname = triggerName + '-' + trigger.Properties.Topic;
+                    if (event.TriggerName == fullname)
+                        return event;
+                }
+
                 if (event.TriggerName == triggerName && event.Type == trigger.Type)
                     return event;
             });
 
             // trigger not changed
-            if (!_.isEmpty(oldEvent) && !this._isChanged(trigger, oldEvent)) 
+            if (!_.isEmpty(oldEvent) && !this._isChanged(trigger, oldEvent))
                 continue;
+
+            // delete exists trigger
+            if (!_.isEmpty(oldEvent) /*&& trigger.Type != Constants.ScfTriggerTypeApigw*/) {
+                const delArgs = {
+                    Type: oldEvent.Type,
+                    TriggerName: oldEvent.TriggerName,
+                    FunctionName: funcObject.FuncName,
+                    Region: this.options.region,
+                    Namespace: ns,
+                    TriggerDesc: oldEvent.TriggerDesc
+                };
+                await this.request(this.scfClient, 'DeleteTrigger', delArgs);
+            }
 
             const args = {
                 Type: trigger.Type,
@@ -49,9 +68,9 @@ class DeployTrigger extends AbstractHandler {
                 Namespace: ns
             };
 
-            if (trigger.Properties.Enable) 
+            if (trigger.Properties.Enable)
                 args.Enable = 'OPEN';
-            else 
+            else
                 args.Enable = 'CLOSE';
 
             let desc;
@@ -121,14 +140,18 @@ class DeployTrigger extends AbstractHandler {
                             failedFunc(`create trigger ${triggerName} failed, 触发器名称不符合规范 (triggerName 格式应为: <BucketName-APPID>.cos.<Region>.myqcloud.com)`, trigger);
                         continue;
                     }
-                    
+
                     args.TriggerDesc = JSON.stringify(desc);
                     break;
             }
-            const respAddTrigger = await this.request(this.scfClient, 'CreateTrigger', args);
-            triggerResults.push(respAddTrigger);
-            if (successFunc && _.isFunction(successFunc))
-                successFunc(respAddTrigger.TriggerInfo, trigger);
+            try {
+                const respAddTrigger = await this.request(this.scfClient, 'CreateTrigger', args);
+                triggerResults.push(respAddTrigger);
+                if (successFunc && _.isFunction(successFunc))
+                    successFunc(respAddTrigger.TriggerInfo, trigger);
+            } catch (e) {
+                failedFunc(`create trigger ${triggerName} failed, ${e.message}`, trigger);
+            }
         }
         return triggerResults;
     }
@@ -140,17 +163,33 @@ class DeployTrigger extends AbstractHandler {
         let changed = false;
         switch(trigger.Type.toLocaleLowerCase()) {
             case Constants.ScfTriggerTypeApigw:
-                if (triggerDesc.service.serviceId && 
-                    trigger.Properties.ServiceId == triggerDesc.service.serviceId && 
-                    // trigger.Properties.Enable == triggerEnable &&
+                const stageName = (trigger.Properties.StageName ? trigger.Properties.StageName.toLocaleLowerCase() : '');
+                const integratedResponse = (trigger.Properties.IntegratedResponse ? 'TRUE' : 'FALSE');
+                if (trigger.Properties.ServiceId &&
+                    trigger.Properties.ServiceId == triggerDesc.service.serviceId &&
+                    integratedResponse == triggerDesc.api.isIntegratedResponse &&
+                    stageName == triggerDesc.release.environmentName.toLocaleLowerCase() &&
                     trigger.Properties.HttpMethod == triggerDesc.api.requestConfig.method) {
-                    this.logger(`trigger no changed, service id ${trigger.Properties.ServiceId}, url ${triggerDesc.service.subDomain}`)
+                    this.logger(`trigger ${oldEvent.TriggerName} no changed, service id ${trigger.Properties.ServiceId}, url ${triggerDesc.service.subDomain}`)
                     break;
                 }
                 changed = true;
                 break;
             case Constants.ScfTriggerTypeTimer:
+                const newCron = util.format('0 %s *', trigger.Properties.CronExpression);
+                if (triggerDesc.cron == newCron &&
+                    trigger.Properties.Enable == triggerEnable) {
+                    this.logger('trigger %s:%s not changed', oldEvent.TriggerName, oldEvent.Type);
+                    break;
+                }
+                changed = true;
+                break;
             case Constants.ScfTriggerTypeCmq:
+                if (trigger.Properties.Enable == triggerEnable) {
+                    this.logger('trigger %s:%s not changed', oldEvent.TriggerName, oldEvent.Type);
+                    break;
+                }
+
                 changed = true;
                 break;
 
@@ -166,7 +205,7 @@ class DeployTrigger extends AbstractHandler {
                 break;
             case Constants.ScfTriggerTypeCkafka:
                 // ckafka not support enable/disable
-                if (trigger.Properties.Topic == triggerDesc.topicName && 
+                if (trigger.Properties.Topic == triggerDesc.topicName &&
                     trigger.Properties.MaxMsgNum == triggerDesc.maxMsgNum &&
                     (trigger.Properties.Offset ? trigger.Properties.Offset == triggerDesc.offset : true)) {
                     this.logger('trigger %s:%s not changed', oldEvent.TriggerName, oldEvent.Type);
