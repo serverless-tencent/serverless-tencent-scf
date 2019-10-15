@@ -160,7 +160,7 @@ class TencentProvider {
             'Type': 'Timer',
             'Properties': {
                 'CronExpression': event.parameters.cronExpression,
-                'Enable': event.parameters.enable || true
+                'Enable': event.parameters.enable
             }
         };
         return trigger;
@@ -182,7 +182,7 @@ class TencentProvider {
             'Properties': {
                 'Bucket': event.parameters.bucket,
                 'Events': event.parameters.events,
-                'Enable': event.parameters.enable || true
+                'Enable': event.parameters.enable
             }
         };
         if (this.jsonObjectIsEmpty(filter) == false) {
@@ -201,7 +201,7 @@ class TencentProvider {
                 'HttpMethod': event.parameters.httpMethod,
                 'ServiceId': event.parameters.serviceId || apiGateway && apiGateway.serviceId ? apiGateway.serviceId : "",
                 'IntegratedResponse': event.parameters.integratedResponse,
-                'Enable': event.parameters.enable || true
+                'Enable': event.parameters.enable
             }
         };
         return trigger;
@@ -213,7 +213,7 @@ class TencentProvider {
             'Type': 'CMQ',
             'Properties': {
                 'Name': event.parameters.name,
-                'Enable': event.parameters.enable || true
+                'Enable': event.parameters.enable
             }
         };
         return trigger;
@@ -228,7 +228,7 @@ class TencentProvider {
                 'Topic': event.parameters.Topic,
                 'MaxMsgNum': event.parameters.maxMsgNum,
                 'Offset': event.parameters.offset,
-                'Enable': event.parameters.enable || true
+                'Enable': event.parameters.enable
             }
         };
         return trigger;
