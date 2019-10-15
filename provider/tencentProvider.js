@@ -193,13 +193,13 @@ class TencentProvider {
 
     getAPIGWEvent(event, funcObject) {
         const trigger = {};
-        const apiGateway = this.serverless.service.provider;
+        const apiGateway = this.serverless.service.provider.apiGateway;
         trigger[event.name] = {
             'Type': 'APIGW',
             'Properties': {
                 'StageName': event.parameters.stageName,
                 'HttpMethod': event.parameters.httpMethod,
-                'ServiceId': event.parameters.serviceId || apiGateway && apiGateway.serviceId ? apiGateway.serviceId : "",
+                'ServiceId': event.parameters.serviceId || (apiGateway && apiGateway.serviceId ? apiGateway.serviceId : ""),
                 'IntegratedResponse': event.parameters.integratedResponse,
                 'Enable': event.parameters.enable
             }
