@@ -8,7 +8,7 @@
 | Create           | 100%     |   增加PHP、Go、Python、Nodejs语言的模版    |
 | Install          | 50%       |   优质例子添加 |
 | Package          | 100%     |   本期沿用原生，未进行额外修改    |
-| Deploy           |  80%      |   一期开发    |
+| Deploy           |  100%      |   一期开发    |
 | Deploy Function  | 100%       |   一期开发    |
 | Deploy List      | 100%       |   一期开发    |
 | Deploy List Functions      | 100%       |   一期增量开发    |
