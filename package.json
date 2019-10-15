@@ -1,0 +1,47 @@
+{
+  "name": "serverless-tencent-cloudfunctions",
+  "version": "0.0.1",
+  "description": "Provider plugin for the Serverless Framework v1.x which adds support for Teencent Cloud Functions.",
+  "main": "index.js",
+  "author": "serverless.com",
+  "license": "MIT",
+  "repository": {
+    "git": "https://github.com/anycodes/serverless-tencentcloud-cloudfunction"
+  },
+  "scripts": {
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "lint": "eslint . --cache"
+  },
+  "homepage": "https://github.com/anycodes/serverless-tencentcloud-cloudfunction",
+  "keywords": [
+    "serverless",
+    "serverless framework",
+    "serverless applications",
+    "serverless modules",
+    "tencent cloud functions",
+    "iot",
+    "internet of things",
+    "serverless.com"
+  ],
+  "dependencies": {
+    "assert": "^2.0.0",
+    "async": "^2.6.3",
+    "bluebird": "^3.5.5",
+    "chalk": "^2.4.2",
+    "cos-nodejs-sdk-v5": "^2.5.12",
+    "filesize": "^5.0.3",
+    "fs-extra": "^8.1.0",
+    "lodash": "^4.17.15",
+    "request": "^2.88.0",
+    "tencentcloud-sdk-nodejs": "^3.0.87"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.5",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.18.1",
+    "jest": "^24.8.0",
+    "sinon": "^7.3.2"
+  }
+}

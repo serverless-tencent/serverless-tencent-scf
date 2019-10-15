@@ -1,0 +1,88 @@
+service: my-service
+
+provider:
+  name: tencent
+  credentials: ~/credentials # 绝对地址，默认为 ~/credentials
+  stage: test # 阶段，默认为 dev
+  runtime: nodejs8.9 # 可以指定腾讯云Serverless Cloud Function支持的Runtime， 默认nodejs8.9
+  cosBucket: DEFAULT # 可以指定，默认为DEFAULT: sls-cloudfunction-{region}
+  role: QCS_SCFExcuteRole # 可以指定，默认是QCS_SCFExcuteRole
+  memorySize: 256 # 默认256M，优先级：函数设置>全局设置>默认设置
+  timeout: 10 # 默认10s，优先级：函数设置>全局设置>默认设置
+  region: ap-shanghai # 默认sp-guangzhou，优先级：函数设置>全局设置>默认设置
+  environment: # 公共环境变量
+    variables:
+      ENV_FIRST: env1
+      ENV_SECOND: env2
+
+plugins:
+  - serverless-tencent-cloudfunction
+
+package:
+  exclude:
+    - package-lock.json
+    - .gitignore
+    - .git/**
+    - node_modules/** # exclude all node_modules....
+  include:
+    - node_modules/moment/** # except necessary ones
+  excludeDevDependencies: false
+
+
+functions:
+  function_one:
+    handler: index.main_handler
+    description: Tencent Serverless Cloud Function
+    runtime: python3.6
+    memorySize: 256
+    timeout: 10
+    environment:
+      variables:
+        ENV_FIRST: env1
+        ENV_Third: env2
+    events:
+      - timer:
+          name: timer
+          parameters:
+            cronExpression: '*/5 * * * *'
+            enable: true
+      - cos:
+          name: cli-appid.cos.ap-beijing.myqcloud.com
+          parameters:
+            bucket: cli-appid.cos.ap-beijing.myqcloud.com
+            filter:
+              prefix: filterdir/
+              suffix: .jpg
+            events: cos:ObjectCreated:*
+            enable: true
+      - apigw:
+          name: hello_world_apigw
+          parameters:
+            stageName: release
+            serviceId:
+            httpMethod: ANY
+      - cmq:
+          name: cmq_trigger
+          parameters:
+            name: test-topic-queue
+            enable: true
+      - ckafka:
+          name: ckafka_trigger
+          parameters:
+            name: ckafka-2o10hua5
+            topic: test
+            maxMsgNum: 999
+            offset: latest
+            enable: true
+  function_two:
+    handler: index.main_handler
+    description: Tencent Serverless Cloud Function
+    runtime: python3.6
+    memorySize: 256
+    timeout: 10
+    events:
+      - timer:
+          name: timer
+          parameters:
+            cronExpression: '*/5 * * * *'
+            enable: true
