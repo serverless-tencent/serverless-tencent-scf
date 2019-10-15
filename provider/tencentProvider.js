@@ -224,8 +224,8 @@ class TencentProvider {
         trigger[event.name] = {
             'Type': 'Ckafka',
             'Properties': {
-                'Name': event.parameters.httpMethod,
-                'Topic': event.parameters.Topic,
+                'Name': event.parameters.name,
+                'Topic': event.parameters.topic,
                 'MaxMsgNum': event.parameters.maxMsgNum,
                 'Offset': event.parameters.offset,
                 'Enable': event.parameters.enable
@@ -297,7 +297,7 @@ class TencentProvider {
         };
 
         resource["Resources"]["default"] = functionList;
-        // this.serverless.cli.log(JSON.stringify(resource));
+        this.serverless.cli.log(JSON.stringify(resource));
         return resource
     }
 
