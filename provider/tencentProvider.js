@@ -144,11 +144,11 @@ class TencentProvider {
         };
         const vpcConfig = this.getVPCConfig(funcObject);
         if (vpcConfig) {
-            functionResource['VpcConfig'] = vpcConfig
+            functionResource['Properties']['VpcConfig'] = vpcConfig
         }
         const environment = this.getEnvironment(funcObject);
         if (environment) {
-            functionResource['Environment'] = environment
+            functionResource['Properties']['Environment'] = environment
         }
         return functionResource
     }
