@@ -40,10 +40,6 @@ class DeployTrigger extends AbstractHandler {
 				}
 
 				if (event.Type == Constants.ScfTriggerTypeApigw) {
-					// console.log(trigger.Properties.ServiceId)
-					// console.log( JSON.parse(event.TriggerDesc).service.serviceId)
-					// console.log(trigger.Properties.HttpMethod)
-					// console.log(JSON.parse(event.TriggerDesc).api.requestConfig.method)
 					if (trigger.Properties.ServiceId == JSON.parse(event.TriggerDesc).service.serviceId
 						&& trigger.Properties.HttpMethod == JSON.parse(event.TriggerDesc).api.requestConfig.method)
 						return event;
@@ -82,9 +78,6 @@ class DeployTrigger extends AbstractHandler {
 				args.Enable = 'OPEN';
 			else
 				args.Enable = 'CLOSE';
-
-			console.log(oldEvent)
-			console.log(trigger)
 
 			let desc;
 			switch (args.Type) {
@@ -147,7 +140,7 @@ class DeployTrigger extends AbstractHandler {
 							Prefix: trigger.Properties.Filter.Prefix || '',
 							Suffix: trigger.Properties.Filter.Suffix || ''
 						}
-					}
+					};
 					if (triggerName != trigger.Properties.Bucket) {
 						if (failedFunc && _.isFunction(failedFunc))
 							failedFunc(`create trigger ${triggerName} failed, 触发器名称不符合规范 (triggerName 格式应为: <BucketName-APPID>.cos.<Region>.myqcloud.com)`, trigger);
@@ -157,21 +150,23 @@ class DeployTrigger extends AbstractHandler {
 					args.TriggerDesc = JSON.stringify(desc);
 					break;
 			}
-			try {
-				const respAddTrigger = await this.request(this.scfClient, 'CreateTrigger', args);
+
+			const respAddTrigger = await this.requestTrigger(this.scfClient, 'CreateTrigger', args);
+			if (respAddTrigger) {
 				triggerResults.push(respAddTrigger);
 				if (successFunc && _.isFunction(successFunc))
 					successFunc(respAddTrigger.TriggerInfo, trigger);
-				// if (respAddTrigger) {
-				// 	triggerResults.push(respAddTrigger);
-				// 	if (successFunc && _.isFunction(successFunc))
-				// 		successFunc(respAddTrigger.TriggerInfo, trigger);
-				// } else {
-				// 	await this.request(this.scfClient, 'CreateTrigger', oldEvent);
-				// }
-			} catch (e) {
-				failedFunc(`create trigger ${triggerName} failed, ${e.message}`, trigger);
+			} else {
+				if (oldEvent && oldEvent.TriggerDesc) {
+					if (oldEvent.Type == 'timer') {
+						args.TriggerDesc = JSON.parse(oldEvent.TriggerDesc).cron;
+					} else {
+						args.TriggerDesc = oldEvent.TriggerDesc;
+					}
+					await this.requestTrigger(this.scfClient, 'CreateTrigger', args);
+				}
 			}
+
 		}
 		return triggerResults;
 	}

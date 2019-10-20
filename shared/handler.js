@@ -108,9 +108,19 @@ class AbstractHandler {
 		return new Promise(async done => {
 			client[func](args, (err, data) => {
 				if (err) {
-					// console.log(err)
-					// done(false);
 					throw err
+				}
+				done(data);
+			});
+		});
+	}
+
+	requestTrigger(client, func, args) {
+		return new Promise(async done => {
+			client[func](args, (err, data) => {
+				if (err) {
+					console.log(err)
+					done(false)
 				}
 				done(data);
 			});
