@@ -11,108 +11,111 @@ const TagClient = tencentcloud.tag.v20180813.Client;
 const MonitorClinet = tencentcloud.monitor.v20180724.Client;
 
 class AbstractHandler {
-    constructor(appid, secret_id, secret_key, options) {
-        this.appid = appid;
-        this.secret_id = secret_id;
-        this.secret_key = secret_key;
-        this.options = options;
+	constructor(appid, secret_id, secret_key, options) {
+		this.appid = appid;
+		this.secret_id = secret_id;
+		this.secret_key = secret_key;
+		this.options = options;
 
-        this.output = console.log;
+		this.output = console.log;
 
-        assert(options, 'options should not is empty');
-        this._scfClient = AbstractHandler.createScfClient(secret_id, secret_key, options);
-        this._cosClient = AbstractHandler.createCosClient(secret_id, secret_key, options);
-        this._tagClient = AbstractHandler.createTagClient(secret_id, secret_key, options);
-    }
+		assert(options, 'options should not is empty');
+		this._scfClient = AbstractHandler.createScfClient(secret_id, secret_key, options);
+		this._cosClient = AbstractHandler.createCosClient(secret_id, secret_key, options);
+		this._tagClient = AbstractHandler.createTagClient(secret_id, secret_key, options);
+	}
 
-    logger() {
-        if (process.env['SLS_SCF_DEBUG'])
-            this.output(...arguments);
-    }
+	logger() {
+		if (process.env['SLS_SCF_DEBUG'])
+			this.output(...arguments);
+	}
 
-    setOutput(output) {
-        this.output = output;
-    }
+	setOutput(output) {
+		this.output = output;
+	}
 
-    static createTagClient(secret_id, secret_key, options) {
-        const cred = new Credential(secret_id, secret_key);
+	static createTagClient(secret_id, secret_key, options) {
+		const cred = new Credential(secret_id, secret_key);
 
-        const httpProfile = new HttpProfile();
-        httpProfile.reqTimeout = (options ? options.timeout : 30);
-        const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
+		const httpProfile = new HttpProfile();
+		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 
-        assert(options.region, 'region should not is empty');
-        return new TagClient(cred, options.region, clientProfile);
-    }
+		assert(options.region, 'region should not is empty');
+		return new TagClient(cred, options.region, clientProfile);
+	}
 
-    get tagClient() {
-        return this._tagClient;
-    }
+	get tagClient() {
+		return this._tagClient;
+	}
 
-    static createScfClient(secret_id, secret_key, options) {
-        const cred = new Credential(secret_id, secret_key);
+	static createScfClient(secret_id, secret_key, options) {
+		const cred = new Credential(secret_id, secret_key);
 
-        const httpProfile = new HttpProfile();
-        httpProfile.reqTimeout = (options ? options.timeout : 30);
-        const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
+		const httpProfile = new HttpProfile();
+		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 
-        assert(options.region, 'region should not is empty');
+		assert(options.region, 'region should not is empty');
 
-        return new ScfClient(cred, options.region, clientProfile);
-    }
+		return new ScfClient(cred, options.region, clientProfile);
+	}
 
-    tencentCloudBaseConf() {
-        const cred = new Credential(this.secret_id, this.secret_key);
-        const httpProfile = new HttpProfile();
-        httpProfile.reqTimeout = (options ? options.timeout : 30);
-        const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
-        assert(this.options.region, 'Region could not be empty');
-        return {
-            "cred": cred,
-            "region": this.options.region,
-            "clientProfile": clientProfile
-        }
-    }
+	tencentCloudBaseConf() {
+		const cred = new Credential(this.secret_id, this.secret_key);
+		const httpProfile = new HttpProfile();
+		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
+		assert(this.options.region, 'Region could not be empty');
+		return {
+			"cred": cred,
+			"region": this.options.region,
+			"clientProfile": clientProfile
+		}
+	}
 
 
-    get monitorClient() {
-        const conf = this.tencentCloudBaseConf();
-        return new MonitorClinet(conf.cred, conf.region, conf.clientProfile);
-    }
+	get monitorClient() {
+		const conf = this.tencentCloudBaseConf();
+		return new MonitorClinet(conf.cred, conf.region, conf.clientProfile);
+	}
 
-    get scfClient() {
-        return this._scfClient;
-    }
+	get scfClient() {
+		return this._scfClient;
+	}
 
-    static createCosClient(secret_id, secret_key, options) {
-        const fileParallelLimit = options.fileParallelLimit || 5;
-        const chunkParallelLimit = options.chunkParallelLimit || 8;
-        const chunkSize = options.chunkSize || 1024 * 1024 * 8;
-        const timeout = options.timeout || 60;
+	static createCosClient(secret_id, secret_key, options) {
+		const fileParallelLimit = options.fileParallelLimit || 5;
+		const chunkParallelLimit = options.chunkParallelLimit || 8;
+		const chunkSize = options.chunkSize || 1024 * 1024 * 8;
+		const timeout = options.timeout || 60;
 
-        return new COS({
-            SecretId: secret_id,
-            SecretKey: secret_key,
-            FileParallelLimit: fileParallelLimit,
-            ChunkParallelLimit: chunkParallelLimit,
-            ChunkSize: chunkSize,
-            Timeout: timeout * 1000
-        });
-    }
+		return new COS({
+			SecretId: secret_id,
+			SecretKey: secret_key,
+			FileParallelLimit: fileParallelLimit,
+			ChunkParallelLimit: chunkParallelLimit,
+			ChunkSize: chunkSize,
+			Timeout: timeout * 1000
+		});
+	}
 
-    get cosClient() {
-        return this._cosClient;
-    }
+	get cosClient() {
+		return this._cosClient;
+	}
 
-    request(client, func, args) {
-        return new Promise(async done => {
-            client[func](args, (err, data) => {
-                if (err)
-                    throw err;
-                done(data);
-            });
-        });
-    }
+	request(client, func, args) {
+		return new Promise(async done => {
+			client[func](args, (err, data) => {
+				if (err) {
+					// console.log(err)
+					// done(false);
+					throw err
+				}
+				done(data);
+			});
+		});
+	}
 }
 
 module.exports = AbstractHandler;
