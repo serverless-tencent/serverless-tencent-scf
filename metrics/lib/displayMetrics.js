@@ -16,11 +16,11 @@ class MetricsFunction extends AbstractHandler {
                 Namespace: "default",
                 Filters: [
                     {
-                        Name: "tag-service",
+                        Name: "tag-Application",
                         Values: [service,]
                     },
                     {
-                        Name: "tag-stage",
+                        Name: "tag-Stage",
                         Values: [stage,]
                     }
                 ]

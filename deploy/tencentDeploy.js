@@ -31,6 +31,8 @@ class TencentDeploy {
 	}
 
 	async deploy() {
+
+
 		const services = this.provider.getServiceResource();
 		const region = this.options.region;
 
@@ -52,13 +54,18 @@ class TencentDeploy {
 		this.serverless.cli.log(`Uploaded package successful ${this.serverless.service.package.artifact}`);
 		await func.uploadService2Cos(cosBucket, services.ServiceFileName, services);
 
+		// deploy functions
 		for (const funcName in services.Resources.default) {
 			if (funcName == 'Type')
 				continue;
 			const funcObject = _.cloneDeep(services.Resources.default[funcName]);
 			funcObject.Name = funcName;
-			funcObject.FuncName = this.provider.getFunctionName(funcName);
 
+			if (this.options.function && this.options.function != funcName) {
+				continue
+			}
+
+			funcObject.FuncName = this.provider.getFunctionName(funcName);
 
 			this.serverless.cli.log(`Creating function ${funcObject.FuncName}`);
 			const oldFunc = await func.deploy('default', funcObject, this.serverless.service.package.artifact,
@@ -68,20 +75,24 @@ class TencentDeploy {
 			this.serverless.cli.log(`Setting tags for function ${funcObject.FuncName}`);
 			await func.createTags('default', funcObject.FuncName, funcObject.Properties.Tags);
 
-			this.serverless.cli.log(`Creating trigger for function ${funcObject.FuncName}`);
-			result = await trigger.create('default', oldFunc ? oldFunc.Triggers : null, funcObject,
-				(response, trigger) => {
-					if (trigger.Type == 'apigw') {
-						const resultDesc = JSON.parse(response.TriggerDesc);
-						this.serverless.cli.log(`Created ${trigger.Type} trigger ${response.TriggerName} for function ${funcObject.FuncName} success. service id ${resultDesc.service.serviceId} url ${resultDesc.service.subDomain}`);
-					} else
-						this.serverless.cli.log(`Created ${trigger.Type} trigger ${response.TriggerName} for function ${funcObject.FuncName} success.`);
-				},
-				(error, trigger) => {
-					this.serverless.cli.log(error)
-				}
-			);
+			if (!oldFunc || this.options.force) {
+				this.serverless.cli.log(`Creating trigger for function ${funcObject.FuncName}`);
+				result = await trigger.create('default', oldFunc ? oldFunc.Triggers : null, funcObject,
+					(response, trigger) => {
+						if (trigger.Type == 'apigw') {
+							const resultDesc = JSON.parse(response.TriggerDesc);
+							this.serverless.cli.log(`Created ${trigger.Type} trigger ${response.TriggerName} for function ${funcObject.FuncName} success. service id ${resultDesc.service.serviceId} url ${resultDesc.service.subDomain}`);
+						} else
+							this.serverless.cli.log(`Created ${trigger.Type} trigger ${response.TriggerName} for function ${funcObject.FuncName} success.`);
+					},
+					(error, trigger) => {
+						this.serverless.cli.log(error)
+					}
+				);
+			}
+
 			this.serverless.cli.log(`Deployed function ${funcObject.FuncName} successful`);
+
 		}
 	}
 }

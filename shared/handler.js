@@ -51,20 +51,19 @@ class AbstractHandler {
 
 	static createScfClient(secret_id, secret_key, options) {
 		const cred = new Credential(secret_id, secret_key);
-
 		const httpProfile = new HttpProfile();
 		httpProfile.reqTimeout = (options ? options.timeout : 30);
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
-
 		assert(options.region, 'region should not is empty');
-
-		return new ScfClient(cred, options.region, clientProfile);
+		const scfCli = new ScfClient(cred, options.region, clientProfile)
+		scfCli._sdkVersion = "Serverless Framework"
+		return scfCli;
 	}
 
 	tencentCloudBaseConf() {
 		const cred = new Credential(this.secret_id, this.secret_key);
 		const httpProfile = new HttpProfile();
-		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		httpProfile.reqTimeout = 30;
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 		assert(this.options.region, 'Region could not be empty');
 		return {

@@ -64,6 +64,7 @@ class TencentInfo {
             const functionList = await Handler.functionList(this.serverless.service.service, this.options.stage);
             const functionListData = functionList.Functions || [];
             const timeFormat = 'yyyy-MM-dd hh:mm:ss';
+
             const startTime = this.options.startTime || this.frontOneHour(timeFormat, 24 * 60 * 60 * 1000);
             const endTime = this.options.endTime || this.frontOneHour(timeFormat, 0);
             let functionInformation = {};
@@ -98,6 +99,7 @@ class TencentInfo {
                         'Duration': duration ? duration : 0
                     };
                 }
+                console.log(output)
                 let serviceInvocation = 0;
                 let serviceError = 0;
                 let serviceOutFlow = 0;
