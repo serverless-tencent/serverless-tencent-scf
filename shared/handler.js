@@ -17,8 +17,6 @@ class AbstractHandler {
 		this.secret_key = secret_key;
 		this.options = options;
 
-		this.output = console.log;
-
 		assert(options, 'options should not is empty');
 		this._scfClient = AbstractHandler.createScfClient(secret_id, secret_key, options);
 		this._cosClient = AbstractHandler.createCosClient(secret_id, secret_key, options);
@@ -55,8 +53,8 @@ class AbstractHandler {
 		httpProfile.reqTimeout = (options ? options.timeout : 30);
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 		assert(options.region, 'region should not is empty');
-		const scfCli = new ScfClient(cred, options.region, clientProfile)
-		scfCli._sdkVersion = "Serverless Framework"
+		const scfCli = new ScfClient(cred, options.region, clientProfile);
+		scfCli.sdkVersion = "ServerlessFramework";
 		return scfCli;
 	}
 
