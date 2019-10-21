@@ -15,14 +15,13 @@ class InvokeFunction extends AbstractHandler {
             req.LogType       = 'Tail';
             req.ClientContext = context;
             req.Namespace     = ns;
-
             this.scfClient.Invoke(req, function(err, response) {
                 if (err)
                     throw err;
-                if (!response.Result.InvokeResult) 
+                if (!response.Result.InvokeResult)
                     done(response);
                 else
-                    throw new Error(response.Result.RetMsg);
+                    done(response);
             });
         });
     }

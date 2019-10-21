@@ -35,9 +35,14 @@ class AbstractHandler {
 	}
 
 	static createTagClient(secret_id, secret_key, options) {
-		const conf = this.tencentCloudBaseConf();
+		const cred = new Credential(secret_id, secret_key);
+
+		const httpProfile = new HttpProfile();
+		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
+
 		assert(options.region, 'region should not is empty');
-		return new TagClient(conf.cred, options.region, conf.clientProfile);
+		return new TagClient(cred, options.region, clientProfile);
 	}
 
 	get tagClient() {
@@ -45,30 +50,24 @@ class AbstractHandler {
 	}
 
 	static createScfClient(secret_id, secret_key, options) {
-		const conf = this.tencentCloudBaseConf();
+		const cred = new Credential(secret_id, secret_key);
+		const httpProfile = new HttpProfile();
+		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 		assert(options.region, 'region should not is empty');
-		const scfCli = new ScfClient(conf.cred, options.region, conf.clientProfile)
+		const scfCli = new ScfClient(cred, options.region, clientProfile)
 		scfCli._sdkVersion = "Serverless Framework"
 		return scfCli;
 	}
 
-	tencentCloudBaseConf() {
+
+	get monitorClient() {
 		const cred = new Credential(this.secret_id, this.secret_key);
 		const httpProfile = new HttpProfile();
 		httpProfile.reqTimeout = 30;
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
 		assert(this.options.region, 'Region could not be empty');
-		return {
-			"cred": cred,
-			"region": this.options.region,
-			"clientProfile": clientProfile
-		}
-	}
-
-
-	get monitorClient() {
-		const conf = this.tencentCloudBaseConf();
-		return new MonitorClinet(conf.cred, conf.region, conf.clientProfile);
+		return new MonitorClinet(cred, this.options.region, clientProfile);
 	}
 
 	get scfClient() {
