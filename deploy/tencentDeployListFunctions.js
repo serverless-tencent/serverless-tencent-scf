@@ -6,7 +6,7 @@ const validate = require('../shared/validate');
 const utils = require('../shared/utils');
 const tencentProvider = require('../provider/tencentProvider');
 const ListFunctions = require('./lib/deployListFunctions');
-const InfoFunction = require('../info/lib/displayServiceInfo')
+const InfoFunction = require('../info/lib/displayServiceInfo');
 
 class TencentInvoke {
 

@@ -63,7 +63,14 @@ class DeployTrigger extends AbstractHandler {
 					Namespace: ns,
 					TriggerDesc: oldEvent.TriggerDesc
 				};
-				await this.request(this.scfClient, 'DeleteTrigger', delArgs);
+
+				const handler = util.promisify(this.scfClient.DeleteTrigger.bind(this.scfClient));
+				try {
+					await handler(delArgs)
+				} catch (e) {
+					console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
+					throw e
+				}
 			}
 
 			const args = {
@@ -165,6 +172,7 @@ class DeployTrigger extends AbstractHandler {
 					try {
 						await handler(args)
 					} catch (e) {
+						console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId)
 						throw e
 					}
 				} else {

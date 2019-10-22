@@ -36,13 +36,13 @@ class TencentLogs {
     getTimeFun(fmt, difTime) {
         var currentTime = new Date(new Date().getTime() - difTime);
         var o = {
-            'M+': currentTime.getMonth() + 1, // 月份
-            'd+': currentTime.getDate(), // 日
-            'h+': currentTime.getHours(), // 小时
-            'm+': currentTime.getMinutes(), // 分
-            's+': currentTime.getSeconds(), // 秒
-            'q+': Math.floor((currentTime.getMonth() + 3) / 3), // 季度
-            'S': currentTime.getMilliseconds() // 毫秒
+            'M+': currentTime.getMonth() + 1,
+            'd+': currentTime.getDate(),
+            'h+': currentTime.getHours(),
+            'm+': currentTime.getMinutes(),
+            's+': currentTime.getSeconds(),
+            'q+': Math.floor((currentTime.getMonth() + 3) / 3),
+            'S': currentTime.getMilliseconds()
         };
         if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (currentTime.getFullYear() + '').substr(4 - RegExp.$1.length));
         for (var k in o) {

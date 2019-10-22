@@ -19,8 +19,8 @@ class RemoveFunction extends AbstractHandler {
 		try {
 			return await handler(req)
 		} catch (e) {
-			if (!(e.code == 'ResourceNotFound.FunctionName' || e.code == 'ResourceNotFound.Function'))
-				throw err;
+			console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
+			throw e;
 		}
 	}
 }

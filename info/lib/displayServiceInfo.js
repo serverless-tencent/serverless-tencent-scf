@@ -30,6 +30,7 @@ class InfoFunction extends AbstractHandler {
 		try {
 			return await handler(req)
 		} catch (e) {
+			console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 			throw e
 		}
 	}

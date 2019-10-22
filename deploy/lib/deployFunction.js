@@ -15,9 +15,9 @@ class DeployFunction extends AbstractHandler {
 
 	async deploy(ns, funcObject, packagePath) {
 		const func = await this.getFunction(ns, funcObject.FuncName);
-		if (!func)
+		if (!func) {
 			await this.createFunction(ns, funcObject, packagePath);
-		else {
+		} else {
 			await this.updateFunctionCode(ns, funcObject, packagePath);
 			await this.updateConfiguration(ns, func, funcObject);
 			return func;
@@ -32,12 +32,15 @@ class DeployFunction extends AbstractHandler {
 			Handler: funcObject.Properties.Handler,
 			Namespace: ns,
 			CosBucketName: funcObject.Properties.CodeUri.Bucket,
-			CosObjectName: funcObject.Properties.CodeUri.Key
+			CosObjectName: "/" + funcObject.Properties.CodeUri.Key
 		};
+		const req = new models.UpdateFunctionCodeRequest();
+		req.from_json_string(JSON.stringify(updateArgs));
 		const handler = util.promisify(this.scfClient.UpdateFunctionCode.bind(this.scfClient));
 		try {
-			return await handler(updateArgs)
+			return await handler(req)
 		} catch (e) {
+			console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 			throw e
 		}
 	}
@@ -49,7 +52,7 @@ class DeployFunction extends AbstractHandler {
 			FunctionName: funcObject.FuncName,
 			Code: {
 				CosBucketName: funcObject.Properties.CodeUri.Bucket,
-				CosObjectName: funcObject.Properties.CodeUri.Key
+				CosObjectName: "/" + funcObject.Properties.CodeUri.Key
 			},
 			Namespace: ns,
 			Runtime: funcObject.Properties.Runtime,
@@ -83,11 +86,13 @@ class DeployFunction extends AbstractHandler {
 				SubnetId: vpc.subnetId
 			};
 		}
-
+		const req = new models.CreateFunctionRequest();
+		req.from_json_string(JSON.stringify(createFuncRequest));
 		const handler = util.promisify(this.scfClient.CreateFunction.bind(this.scfClient));
 		try {
-			return await handler(createFuncRequest)
+			return await handler(req)
 		} catch (e) {
+			console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 			throw e
 		}
 	}
@@ -107,6 +112,7 @@ class DeployFunction extends AbstractHandler {
 			if (e.code == 'ResourceNotFound.FunctionName' || e.code == 'ResourceNotFound.Function') {
 				return null
 			} else {
+				console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 				throw e
 			}
 		}
@@ -148,10 +154,13 @@ class DeployFunction extends AbstractHandler {
 		}
 
 		if (!_.isEmpty(configArgs)) {
+			const req = new models.UpdateFunctionConfigurationRequest();
+			req.from_json_string(JSON.stringify(configArgs));
 			const handler = util.promisify(this.scfClient.UpdateFunctionConfiguration.bind(this.scfClient));
 			try {
-				await handler(configArgs)
+				await handler(req)
 			} catch (e) {
+				console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 				throw e
 			}
 		}
@@ -274,7 +283,7 @@ class DeployFunction extends AbstractHandler {
 			ServiceType: 'scf',
 			Limit: 1000
 		};
-		let result
+		let result;
 		handler = util.promisify(this.tagClient.DescribeResourceTagsByResourceIds.bind(this.tagClient));
 		try {
 			result = await handler(findRequest)

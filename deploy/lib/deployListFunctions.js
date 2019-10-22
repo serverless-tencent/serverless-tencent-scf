@@ -17,6 +17,7 @@ class InvokeFunction extends AbstractHandler {
 		try {
 			return handler(req)
 		} catch (e) {
+			console.log("ErrorCode: " + e.code + " RequestId: " + e.requestId);
 			throw e
 		}
 	}
