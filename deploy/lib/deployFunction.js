@@ -1,16 +1,11 @@
 'use strict';
 const tencentcloud = require('tencentcloud-sdk-nodejs');
 const AbstractHandler = require('../../shared/handler');
-const utils = require('../../shared/utils');
 const models = tencentcloud.scf.v20180416.Models;
-const assert = require('assert');
 const fs = require('fs');
 const _ = require('lodash');
-const filesize = require('filesize');
-const request = require('request');
 const util = require('util');
 
-const ScfZipCodeSizeLimit = 20 * 1024 * 1024;
 const ScfUploadSliceLimit = 8 * 1024 * 1024
 
 class DeployFunction extends AbstractHandler {
@@ -31,59 +26,31 @@ class DeployFunction extends AbstractHandler {
 	}
 
 	async updateFunctionCode(ns, funcObject, packagePath) {
-		return new Promise(async (done) => {
-			const updateArgs = {
-				Region: funcObject.Properties.Region,
-				FunctionName: funcObject.FuncName,
-				Handler: funcObject.Properties.Handler,
-				Namespace: ns,
-			};
-
-			if (!funcObject.Properties.CodeUri.Key) {
-				this.logger('Updating function code... ', packagePath);
-				const zipBinContent = fs.readFileSync(packagePath);
-				updateArgs.ZipFile = zipBinContent.toString('base64');
-				const result = await this._updateFunctionCodeTc3(updateArgs);
-				if (result.Error)
-					throw new Error(`${result.Error.Code}: ${result.Error.Message}`);
-				this.logger('Request id', result.RequestId);
-				return result;
-			} else {
-				this.logger('Updating function code to cos... ');
-				updateArgs.CosBucketName = funcObject.Properties.CodeUri.Bucket;
-				updateArgs.CosObjectName = funcObject.Properties.CodeUri.Key;
-				this.scfClient.UpdateFunctionCode(updateArgs, (err, response) => {
-					if (err)
-						throw err;
-					this.logger('Request id', response.RequestId);
-					done(response);
-				});
-			}
-		});
+		const updateArgs = {
+			Region: funcObject.Properties.Region,
+			FunctionName: funcObject.FuncName,
+			Handler: funcObject.Properties.Handler,
+			Namespace: ns,
+			CosBucketName: funcObject.Properties.CodeUri.Bucket,
+			CosObjectName: funcObject.Properties.CodeUri.Key
+		};
+		const handler = util.promisify(this.scfClient.UpdateFunctionCode.bind(this.scfClient));
+		try {
+			return await handler(updateArgs)
+		} catch (e) {
+			throw e
+		}
 	}
 
 	async createFunction(ns, funcObject, packagePath) {
-		let funcCode;
-
-		if (funcObject.Properties.CodeUri.Key) {
-			funcCode = {
-				CosBucketName: funcObject.Properties.CodeUri.Bucket,
-				CosObjectName: funcObject.Properties.CodeUri.Key
-			};
-		} else {
-			const size = fs.statSync(packagePath).size;
-			assert(size <= ScfZipCodeSizeLimit, `file size(${filesize(size)}) exceeds maximum(${filesize(ScfZipCodeSizeLimit)}) limit.`);
-
-			const zipBinContent = fs.readFileSync(packagePath);
-			funcCode = {
-				ZipFile: zipBinContent.toString('base64')
-			};
-		}
 
 		const createFuncRequest = {
 			Region: funcObject.Properties.Region,
 			FunctionName: funcObject.FuncName,
-			Code: funcCode,
+			Code: {
+				CosBucketName: funcObject.Properties.CodeUri.Bucket,
+				CosObjectName: funcObject.Properties.CodeUri.Key
+			},
 			Namespace: ns,
 			Runtime: funcObject.Properties.Runtime,
 			Handler: funcObject.Properties.Handler,
@@ -117,116 +84,37 @@ class DeployFunction extends AbstractHandler {
 			};
 		}
 
-		this.logger('Uploading function', packagePath);
-		const result = await this._createFunctionTc3(createFuncRequest);
-		if (result.Error)
-			throw new Error(`${result.Error.Code}: ${result.Error.Message}`);
-		this.logger('Request id', result.RequestId);
-		return result;
-	}
-
-	_createFunctionTc3(req) {
-		for (let key in req) {
-			if (req[key] == null)
-				delete req[key];
+		const handler = util.promisify(this.scfClient.CreateFunction.bind(this.scfClient));
+		try {
+			return await handler(createFuncRequest)
+		} catch (e) {
+			throw e
 		}
-
-		const region = req.Region;
-		delete req.Region;
-
-		if (req.Action)
-			delete req.Action;
-
-		return new Promise(res => {
-
-			const signObj = utils.TC3HMACSHA256('scf', req, this.secret_id, this.secret_key);
-			const headers = {
-				'X-TC-Action': 'CreateFunction',
-				'X-TC-RequestClient': 'sls-scf-cli',
-				'X-TC-Timestamp': signObj.timestamp,
-				'X-TC-Version': signObj.version,
-				'X-TC-Region': region,
-				'Authorization': signObj.sign,
-			}
-
-			var options = {
-				headers: headers,
-				url: 'https://' + signObj.host,
-				method: 'POST',
-				json: true,
-				body: req
-			};
-
-			request(options, (error, response, data) => {
-				if (error)
-					throw error;
-				res(data.Response);
-			});
-		});
 	}
 
-	_updateFunctionCodeTc3(req) {
-		for (let key in req) {
-			if (req[key] == null)
-				delete req[key];
+	async getFunction(ns, funcName, showCode) {
+		const req = new models.GetFunctionRequest();
+		const body = {
+			FunctionName: funcName,
+			Namespace: ns,
+			ShowCode: showCode ? 'TRUE' : 'FALSE'
+		};
+		req.from_json_string(JSON.stringify(body));
+		const handler = util.promisify(this.scfClient.GetFunction.bind(this.scfClient));
+		try {
+			return await handler(req)
+		} catch (e) {
+			if (e.code == 'ResourceNotFound.FunctionName' || e.code == 'ResourceNotFound.Function') {
+				return null
+			} else {
+				throw e
+			}
 		}
-
-		const region = req.Region;
-		delete req.Region;
-
-		if (req.Action)
-			delete req.Action;
-		return new Promise(res => {
-			const signObj = utils.TC3HMACSHA256('scf', req, this.secret_id, this.secret_key);
-
-			const headers = {
-				'X-TC-Action': 'UpdateFunctionCode',
-				'X-TC-RequestClient': 'sls-scf-cli',
-				'X-TC-Timestamp': signObj.timestamp,
-				'X-TC-Version': signObj.version,
-				'X-TC-Region': region,
-				'Authorization': signObj.sign,
-			}
-
-			var options = {
-				headers: headers,
-				url: 'https://' + signObj.host,
-				method: 'POST',
-				json: true,
-				body: req
-			};
-
-			request(options, (error, response, data) => {
-				if (error)
-					throw error
-				res(data.Response);
-			});
-		});
-	}
-
-	getFunction(ns, funcName, showCode) {
-		return new Promise((done) => {
-			const req = new models.GetFunctionRequest();
-			req.FunctionName = funcName;
-			req.Namespace = ns;
-			req.ShowCode = showCode ? 'TRUE' : 'FALSE';
-
-			this.scfClient.GetFunction(req, function (err, response) {
-				if (err) {
-					if (err.code == 'ResourceNotFound.FunctionName' || err.code == 'ResourceNotFound.Function')
-						return done(null);
-					throw err;
-				}
-				done(response);
-			});
-		});
 	}
 
 	async updateConfiguration(ns, oldFunc, funcObject) {
-		// console.log(oldFunc)
-		// console.log(funcObject)
 		const configArgs = {
-			Region: funcObject.Properties.Region,
+			Region: this.options.region,
 			FunctionName: funcObject.FuncName,
 			Namespace: ns,
 			Runtime: funcObject.Properties.Runtime,
@@ -253,7 +141,6 @@ class DeployFunction extends AbstractHandler {
 
 		if (!_.isEmpty(funcObject.Properties.VpcConfig)) {
 			const vpc = funcObject.Properties.VpcConfig;
-
 			configArgs.VpcConfig = {
 				VpcId: vpc.vpcId,
 				SubnetId: vpc.subnetId
@@ -261,19 +148,13 @@ class DeployFunction extends AbstractHandler {
 		}
 
 		if (!_.isEmpty(configArgs)) {
-			configArgs.Region = this.options.region;
-			configArgs.FunctionName = funcObject.FuncName;
-			configArgs.Namespace = ns;
-			if (funcObject.Properties.Timeout)
-				configArgs.Timeout = funcObject.Properties.Timeout;
-			if (funcObject.Properties.MemorySize)
-				configArgs.MemorySize = funcObject.Properties.MemorySize;
-			this.logger(`Updating function ${funcObject.FuncName} configure ${JSON.stringify(configArgs)}`);
-
-			const result = await this.request(this.scfClient, 'UpdateFunctionConfiguration', configArgs);
-			this.logger('Request id', result.RequestId);
-		} else
-			this.logger('configure not changed. function %s', funcObject.FuncName);
+			const handler = util.promisify(this.scfClient.UpdateFunctionConfiguration.bind(this.scfClient));
+			try {
+				await handler(configArgs)
+			} catch (e) {
+				throw e
+			}
+		}
 
 	}
 
@@ -283,7 +164,14 @@ class DeployFunction extends AbstractHandler {
 		const cosBucketNameFull = util.format('%s-%s', bucketName, this.appid);
 
 		// get region all bucket list
-		const buckets = await this.request(this.cosClient, 'getService', {Region: region});
+		let buckets;
+		const handler = util.promisify(this.cosClient.getService.bind(this.cosClient));
+		try {
+			buckets = await handler({Region: region})
+		} catch (e) {
+			throw e
+		}
+
 		const findBucket = _.find(buckets.Buckets, (item) => {
 			if (item.Name == cosBucketNameFull)
 				return item;
@@ -295,9 +183,15 @@ class DeployFunction extends AbstractHandler {
 			const putArgs = {
 				Bucket: cosBucketNameFull,
 				Region: region
+			};
+			const handler = util.promisify(this.cosClient.putBucket.bind(this.cosClient));
+			try {
+				await handler(putArgs)
+			} catch (e) {
+				throw e
 			}
-			await this.request(this.cosClient, 'putBucket', putArgs);
 		}
+
 
 		if (fs.statSync(filePath).size <= ScfUploadSliceLimit) {
 			const objArgs = {
@@ -307,7 +201,12 @@ class DeployFunction extends AbstractHandler {
 				Body: fs.createReadStream(filePath),
 				ContentLength: fs.statSync(filePath).size
 			};
-			result = await this.request(this.cosClient, 'putObject', objArgs);
+			const handler = util.promisify(this.cosClient.putObject.bind(this.cosClient));
+			try {
+				result = await handler(objArgs)
+			} catch (e) {
+				throw e
+			}
 		} else {
 			const sliceArgs = {
 				Bucket: cosBucketNameFull,
@@ -319,12 +218,13 @@ class DeployFunction extends AbstractHandler {
 				onProgress: function (progressData) {
 				}
 			};
-
-			result = await this.request(this.cosClient, 'sliceUploadFile', sliceArgs);
+			const handler = util.promisify(this.cosClient.sliceUploadFile.bind(this.cosClient));
+			try {
+				result = await handler(sliceArgs)
+			} catch (e) {
+				throw e
+			}
 		}
-
-		this.logger(`Uploaded file[${result.ETag}] success. assess url ${result.Location}`);
-
 		return {
 			CosBucketName: bucketName,
 			CosObjectName: '/' + key
@@ -347,30 +247,40 @@ class DeployFunction extends AbstractHandler {
 			Key: key,
 			Body: value,
 		};
-		return await this.request(this.cosClient, 'putObject', args);
+		const handler = util.promisify(this.cosClient.putObject.bind(this.cosClient));
+		try {
+			return await handler(args)
+		} catch (e) {
+			throw e
+		}
 	}
 
 	async createTags(ns, funcName, tags) {
+		let handler;
 		if (_.isEmpty(tags)) return;
 		const func = await this.getFunction(ns, funcName);
 		if (!func)
 			throw new Error(`Function ${funcName} dont't exists`);
-
 		const resource = util.format('qcs::scf:%s::lam/%s', this.options.region, func.FunctionId);
 		const req = {
 			Resource: resource,
 			ReplaceTags: [],
 			DeleteTags: []
 		};
-
 		const findRequest = {
 			ResourceRegion: this.options.region,
 			ResourceIds: [func.FunctionId],
 			ResourcePrefix: 'lam',
 			ServiceType: 'scf',
 			Limit: 1000
+		};
+		let result
+		handler = util.promisify(this.tagClient.DescribeResourceTagsByResourceIds.bind(this.tagClient));
+		try {
+			result = await handler(findRequest)
+		} catch (e) {
+			throw e
 		}
-		const result = await this.request(this.tagClient, 'DescribeResourceTagsByResourceIds', findRequest);
 		const len = _.size(result.Tags);
 		for (let i = 0; i < len; i++) {
 			const oldTag = result.Tags[i];
@@ -391,7 +301,12 @@ class DeployFunction extends AbstractHandler {
 				TagValue: tags[key]
 			});
 		}
-		await this.request(this.tagClient, 'ModifyResourceTags', req);
+		handler = util.promisify(this.tagClient.ModifyResourceTags.bind(this.tagClient));
+		try {
+			await handler(req)
+		} catch (e) {
+			throw e
+		}
 	}
 
 }

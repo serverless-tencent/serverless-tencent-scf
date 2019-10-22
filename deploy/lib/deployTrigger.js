@@ -11,7 +11,7 @@ const Constants = {
 	ScfTriggerTypeCos: 'cos',
 	ScfTriggerTypeCmq: 'cmq',
 	ScfTriggerTypeCkafka: 'ckafka',
-}
+};
 
 class DeployTrigger extends AbstractHandler {
 	constructor(appid, secret_id, secret_key, options) {
@@ -118,11 +118,10 @@ class DeployTrigger extends AbstractHandler {
 							failedFunc(`create trigger ${triggerName} failed, 最大批量消息数，范围1 - 1000`, trigger);
 						continue;
 					}
-
 					desc = {
 						maxMsgNum: trigger.Properties.MaxMsgNum.toString(),
 						offset: trigger.Properties.Offset || 'latest'
-					}
+					};
 					args.TriggerName = util.format('%s-%s', trigger.Properties.Name, trigger.Properties.Topic);
 					args.TriggerDesc = JSON.stringify(desc);
 					break;
@@ -151,23 +150,29 @@ class DeployTrigger extends AbstractHandler {
 					break;
 			}
 
-			const respAddTrigger = await this.requestTrigger(this.scfClient, 'CreateTrigger', args);
-			if (respAddTrigger) {
+			let handler;
+			handler = util.promisify(this.scfClient.CreateTrigger.bind(this.scfClient));
+			try {
+				const respAddTrigger = await handler(args);
 				triggerResults.push(respAddTrigger);
 				if (successFunc && _.isFunction(successFunc))
 					successFunc(respAddTrigger.TriggerInfo, trigger);
-			} else {
+			} catch (e) {
 				if (oldEvent && oldEvent.TriggerDesc) {
-					if (oldEvent.Type == 'timer') {
-						args.TriggerDesc = JSON.parse(oldEvent.TriggerDesc).cron;
-					} else {
-						args.TriggerDesc = oldEvent.TriggerDesc;
+					console.log(e);
+					args.TriggerDesc = oldEvent.Type == 'timer' ? JSON.parse(oldEvent.TriggerDesc).cron : oldEvent.TriggerDesc;
+					handler = util.promisify(this.scfClient.CreateTrigger.bind(this.scfClient));
+					try {
+						await handler(args)
+					} catch (e) {
+						throw e
 					}
-					await this.requestTrigger(this.scfClient, 'CreateTrigger', args);
+				} else {
+					throw e
 				}
 			}
-
 		}
+
 		return triggerResults;
 	}
 

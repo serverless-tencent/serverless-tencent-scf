@@ -1,30 +1,32 @@
 'use strict';
-const tencentcloud    = require('tencentcloud-sdk-nodejs');
+const tencentcloud = require('tencentcloud-sdk-nodejs');
 const AbstractHandler = require('../../shared/handler');
-const models          = tencentcloud.scf.v20180416.Models;
+const models = tencentcloud.scf.v20180416.Models;
+const util = require('util');
 
 class InvokeFunction extends AbstractHandler {
-    constructor(appid, secret_id, secret_key, options) {
-        super(appid, secret_id, secret_key, options);
-    }
+	constructor(appid, secret_id, secret_key, options) {
+		super(appid, secret_id, secret_key, options);
+	}
 
-    invoke(ns, funcName, context) {
-        return new Promise((done) => {
-            const req = new models.InvokeRequest();
-            req.FunctionName  = funcName;
-            req.LogType       = 'Tail';
-            req.ClientContext = context;
-            req.Namespace     = ns;
-            this.scfClient.Invoke(req, function(err, response) {
-                if (err)
-                    throw err;
-                if (!response.Result.InvokeResult)
-                    done(response);
-                else
-                    done(response);
-            });
-        });
-    }
+	async invoke(ns, funcName, context) {
+
+		const req = new models.InvokeRequest();
+		const body = {
+			FunctionName: funcName,
+			LogType: 'Tail',
+			ClientContext: context,
+			Namespace: ns
+		};
+		req.from_json_string(JSON.stringify(body));
+		const handler = util.promisify(this.scfClient.Invoke.bind(this.scfClient));
+		try {
+			return await handler(req)
+		} catch (e) {
+			throw e
+		}
+
+	}
 
 }
 

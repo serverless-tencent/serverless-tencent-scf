@@ -21,6 +21,7 @@ class AbstractHandler {
 		this._scfClient = AbstractHandler.createScfClient(secret_id, secret_key, options);
 		this._cosClient = AbstractHandler.createCosClient(secret_id, secret_key, options);
 		this._tagClient = AbstractHandler.createTagClient(secret_id, secret_key, options);
+		this._monitorClient = AbstractHandler.createMonitorClient(secret_id, secret_key, options);
 	}
 
 	logger() {
@@ -32,45 +33,36 @@ class AbstractHandler {
 		this.output = output;
 	}
 
-	static createTagClient(secret_id, secret_key, options) {
+	static getClientInfo(secret_id, secret_key, options) {
 		const cred = new Credential(secret_id, secret_key);
-
 		const httpProfile = new HttpProfile();
-		httpProfile.reqTimeout = (options ? options.timeout : 30);
+		httpProfile.reqTimeout = 30;
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
-
 		assert(options.region, 'region should not is empty');
-		return new TagClient(cred, options.region, clientProfile);
+		return {
+			"cred": cred,
+			"region": options.region,
+			"clientProfile": clientProfile
+		}
 	}
 
-	get tagClient() {
-		return this._tagClient;
+	static createTagClient(secret_id, secret_key, options) {
+		const info = this.getClientInfo(secret_id, secret_key, options);
+		return new TagClient(info.cred, info.region, info.clientProfile);
 	}
 
 	static createScfClient(secret_id, secret_key, options) {
-		const cred = new Credential(secret_id, secret_key);
-		const httpProfile = new HttpProfile();
-		httpProfile.reqTimeout = (options ? options.timeout : 30);
-		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
-		assert(options.region, 'region should not is empty');
-		const scfCli = new ScfClient(cred, options.region, clientProfile);
+		const info = this.getClientInfo(secret_id, secret_key, options);
+		const scfCli = new ScfClient(info.cred, info.region, info.clientProfile);
 		scfCli.sdkVersion = "ServerlessFramework";
 		return scfCli;
 	}
 
-
-	get monitorClient() {
-		const cred = new Credential(this.secret_id, this.secret_key);
-		const httpProfile = new HttpProfile();
-		httpProfile.reqTimeout = 30;
-		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);
-		assert(this.options.region, 'Region could not be empty');
-		return new MonitorClinet(cred, this.options.region, clientProfile);
+	static createMonitorClient(secret_id, secret_key, options) {
+		const info = this.getClientInfo(secret_id, secret_key, options);
+		return new MonitorClinet(info.cred, info.region, info.clientProfile);
 	}
 
-	get scfClient() {
-		return this._scfClient;
-	}
 
 	static createCosClient(secret_id, secret_key, options) {
 		const fileParallelLimit = options.fileParallelLimit || 5;
@@ -88,32 +80,23 @@ class AbstractHandler {
 		});
 	}
 
+	get monitorClient() {
+		return this._monitorClient;
+	}
+
 	get cosClient() {
 		return this._cosClient;
 	}
 
-	request(client, func, args) {
-		return new Promise(async done => {
-			client[func](args, (err, data) => {
-				if (err) {
-					throw err
-				}
-				done(data);
-			});
-		});
+	get tagClient() {
+		return this._tagClient;
 	}
 
-	requestTrigger(client, func, args) {
-		return new Promise(async done => {
-			client[func](args, (err, data) => {
-				if (err) {
-					console.log(err)
-					done(false)
-				}
-				done(data);
-			});
-		});
+	get scfClient() {
+		return this._scfClient;
 	}
+
+
 }
 
 module.exports = AbstractHandler;
