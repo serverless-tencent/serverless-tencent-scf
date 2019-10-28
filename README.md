@@ -1,4 +1,4 @@
-# Serverless Framework
+[![Serverless Framework Tencent Cloud Plugin](https://s3.amazonaws.com/assets.github.serverless/github_readme_serverless_plugin_tencent.png)](http://serverless.com)
 
 ## 功能支持进度
 
