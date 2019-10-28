@@ -4,7 +4,7 @@ provider:
   name: tencent
   credentials: ~/credentials # 绝对地址，默认为 ~/credentials
   stage: test # 阶段，默认为 dev
-  runtime: nodejs8.9 # 可以指定腾讯云Serverless Cloud Function支持的Runtime， 默认nodejs8.9
+  runtime: Nodejs8.9 # 可以指定腾讯云Serverless Cloud Function支持的Runtime， 默认nodejs8.9
   cosBucket: DEFAULT # 可以指定，默认为DEFAULT: sls-cloudfunction-{region}
   role: QCS_SCFExcuteRole # 可以指定，默认是QCS_SCFExcuteRole
   memorySize: 256 # 默认256M，优先级：函数设置>全局设置>默认设置
@@ -33,7 +33,7 @@ functions:
   function_one:
     handler: index.main_handler
     description: Tencent Serverless Cloud Function
-    runtime: python3.6
+    runtime: Python3.6
     memorySize: 256
     timeout: 10
     environment:
