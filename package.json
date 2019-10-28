@@ -1,19 +1,19 @@
 {
-  "name": "serverless-tencent-cloudfunctions",
+  "name": "serverless-tencent-scf",
   "version": "0.0.1",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Teencent Cloud Functions.",
   "main": "index.js",
   "author": "serverless.com",
   "license": "MIT",
   "repository": {
-    "git": "https://github.com/serverless-tencent/serverless-tencent-cloudfunction"
+    "git": "https://github.com/serverless-tencent/serverless-tencent-scf"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --cache",
     "coverage": "jest --coverage"
   },
-  "homepage": "https://github.com/serverless-tencent/serverless-tencent-cloudfunction",
+  "homepage": "https://github.com/serverless-tencent/serverless-tencent-scf",
   "keywords": [
     "serverless",
     "serverless framework",

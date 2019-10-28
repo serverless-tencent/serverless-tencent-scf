@@ -31,7 +31,7 @@ provider: # provider information
 #      ENV_SECOND: env2
 
 plugins:
-  - serverless-tencent-cloudfunction
+  - serverless-tencent-scf
 
 functions:
   function_one:
