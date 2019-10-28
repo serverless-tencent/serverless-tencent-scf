@@ -33,7 +33,7 @@ class TencentLogs {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    getTimeFun(fmt, difTime) {
+    getTimeFunction(fmt, difTime) {
         var currentTime = new Date(new Date().getTime() - difTime);
         var o = {
             'M+': currentTime.getMonth() + 1,
@@ -63,10 +63,10 @@ class TencentLogs {
             const interval = this.options.interval || 1000;
             if (this.options.tail) {
                 let logsList = new Array();
-                let startTime = this.options.startTime || this.getTimeFun(timeFormat, interval);
+                let startTime = this.options.startTime || this.getTimeFunction(timeFormat, interval);
                 for (let times = 0; times < 100000; times++) {
                     await this.sleep(interval);
-                    const endTime = this.getTimeFun('yyyy-MM-dd hh:mm:ss', 0);
+                    const endTime = this.getTimeFunction('yyyy-MM-dd hh:mm:ss', 0);
                     const result = await handler.logs(functionName, startTime, endTime, this.options.filter || {});
                     const totalData = result.Data || [];
                     for (var eveLogIndex = 0; eveLogIndex < totalData.length; eveLogIndex++) {
@@ -80,14 +80,13 @@ class TencentLogs {
                                 "\nMemUsage: " + totalData[eveLogIndex].MemUsage +
                                 "\n\nLog: " + totalData[eveLogIndex].Log + "\n\n";
                             this.serverless.cli.log(outputStr)
-                            // this.serverless.cli.log(JSON.stringify(totalData[eveLogIndex], null, 2));
                         }
                     }
                 }
             } else {
                 const result = await handler.logs(functionName,
-                    this.options.startTime || this.getTimeFun(timeFormat, 1 * 60 * 60 * 1000),
-                    this.getTimeFun(timeFormat, 0),
+                    this.options.startTime || this.getTimeFunction(timeFormat, 1 * 60 * 60 * 1000),
+                    this.getTimeFunction(timeFormat, 0),
                     this.options.filter || {});
                 const totalData = result.Data || [];
                 for (let eveLogIndex = 0; eveLogIndex < totalData.length; eveLogIndex++) {

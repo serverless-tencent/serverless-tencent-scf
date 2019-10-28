@@ -9,9 +9,9 @@
     "git": "https://github.com/serverless-tencent/serverless-tencent-cloudfunction"
   },
   "scripts": {
-    "test": "jest",
-    "coverage": "jest --coverage",
-    "lint": "eslint . --cache"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --fix --cache",
+    "coverage": "jest --coverage"
   },
   "homepage": "https://github.com/serverless-tencent/serverless-tencent-cloudfunction",
   "keywords": [
