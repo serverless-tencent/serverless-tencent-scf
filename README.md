@@ -1,612 +1,569 @@
 [![Serverless Framework Tencent Cloud Plugin](https://s3.amazonaws.com/assets.github.serverless/github_readme_serverless_plugin_tencent.png)](http://serverless.com)
 
-## 功能支持进度
+Serverless Framework 是业界最受欢迎的无服务器应用框架，开发者无需关心底层资源即可部署完整可用的 Serverless 应用架构。Serverless Framework 具有资源编排、自动伸缩、事件驱动等能力，覆盖编码 - 调试 - 测试 - 部署等全生命周期。帮助开发者通过联动云资源，迅速地构建 serverless 应用。
 
-| 指令              | 开发进度    |  备注      | 
-| --------         | -----:   | :----:       | 
-| Conf             | -        |   -          |
-| Create           | 100%     |   增加PHP、Go、Python、Nodejs语言的模版    |
-| Install          | 50%       |   优质例子添加 |
-| Package          | 100%     |   本期沿用原生，未进行额外修改    |
-| Deploy           |  100%      |   一期开发    |
-| Deploy Function  | 100%       |   一期开发    |
-| Deploy List      | 100%       |   一期开发    |
-| Deploy List Functions      | 100%       |   一期增量开发    |
-| Invoke           | 100%     |   一期开发    |
-| Invoke Local     |-       |   - |
-| Logs             | 100%     |   一期开发    |
-| Login            | -        |   -    |
-| Metrics          | 100%       |   一期增量开发 |
-| Info             | 100%     |   一期开发    |
-| Rollback         | 100%      |   一期增量开发 |
-| Rollback Function| -      |   - |
-| Remove           | 100%     |   一期开发    |
-| Plugin List      | 100%     |   可以使用    |
-| Plugin Search    | 100%     |   可以使用    |
-| Plugin Install   | 100%     |   可以使用    |
-| Plugin Uninstall | 100%     |   可以使用    |
-| Print            | 100%     |   可以使用    |
-| Serverless Stats | -        |   -    |
 
-## 相关说明
-* 目前部署函数只支持函数上传到COS，不支持非COS上传函数代码
-* 所有重复设计：Options（传参）> 函数本身 > 全局变量
-* Trigger部署说明：
-```text
-唯一标识：
-Timer： TriggerName
-APIGW: ServiceId + StageName + HttpMethod
-COS: Bucket + Events + Filter
-Ckafka : Name + Topic
-CMQ: Name
-Deploy Trigger逻辑：
-判断现在的唯一表识和线上的是否一致：
-不一致：创建触发器
-一致：
-    判断其他信息是否一致：
-    一致：跳过
-    不一致：删除现有的触发器，重新建立（修改逻辑）
+
+## 主要功能
+
+### 应用级框架
+Serverless Framework 提供贴合应用场景的框架，开发者根据实际需求选择对应框架后，只需专注于业务逻辑的开发，无需关注底层资源。
+
+### 便捷部署
+开发者部署应用时，Serverless Framework 会根据应用特性，自动完成云函数，API 网关，COS 等基础资源的部署和配置。开发者无需再手动部署配置每一项基础资源。
+
+
+
+## 环境准备
+
+- 已安装 `npm`  ，如果未安装，可前往[Node.js官网](https://nodejs.org/)下载对应平台的安装程序，版本要求 ： Node6 +。安装完成后，执行 `npm -v` 确认是否安装成功。
+
+
+
+## 安装 CLI
+
+执行以下命令安装/更新 CLI ：
+
+```
+# 安装 CLI
+npm install -g serverless
 ```
 
-## 测试版使用方法
-* 新建文件夹（服务名为mytest）:```mkdir mytest```
-* 进入文件夹：```cd mytest```
-* 创建yaml文件：```vim serverless.yaml```
-内容为：
-```yaml
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
 
-service: my-service # service name
 
-provider: # provider information
+## 升级 CLI
+
+如果已安装过 CLI ，则可以执行以下命令更新：
+
+```
+npm update -g serverless
+```
+
+# 配置账号
+
+如果您是首次使用云函数产品，需要前往控制台配置角色授权。
+
+## 前提条件
+
+- 已注册腾讯云账户。若未注册腾讯云账户，可 [点此](https://cloud.tencent.com/register) 进入注册页面。
+
+- 已登录 [云函数控制台](https://console.cloud.tencent.com/scf)。
+
+
+
+## 配置文件
+
+- APPID。通过访问控制台中的【账号中心】>【[账号信息](https://console.cloud.tencent.com/developer)】，可以查询到您的账号 ID。
+- SecretID 及 SecretKey：指云 API 的密钥 ID 和密钥 Key。您可以通过登录【[访问管理控制台](https://console.cloud.tencent.com/cam/overview)】，选择【云 API 密钥】>【[API 密钥管理](https://console.cloud.tencent.com/cam/capi)】，获取相关密钥或创建相关密钥。
+
+新建文件将账号信息写入 ：
+
+```ini
+[default]
+tencent_appid = appid
+tencent_secret_id = secretid
+tencent_secret_key = secretkey
+```
+
+如，我们将该文件命名为`credentials` ，并放入 `~`目录。
+
+
+
+## 使用配置
+
+如果已经在本地创建了 serverless 示例模板，则打开模板项目里的 `serverless.yml` 文件，引用配置文件：
+
+```
+provider: 
   name: tencent
   runtime: python3.6
   credentials: ~/credentials
-
-# you can overwrite defaults here
-#  stage: dev
-#  cosBucket: DEFAULT
-#  role: QCS_SCFExcuteRole
-#  memorySize: 256
-#  timeout: 10
-#  region: ap-shanghai
-#  environment:
-#    variables:
-#      ENV_FIRST: env1
-#      ENV_SECOND: env2
-
-plugins:
-  - serverless-tencent-cloudfunction
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.py
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
-
-
-functions:
-  function_one:
-    handler: index.main_handler
-#    description: Tencent Serverless Cloud Function
-#    runtime: python3.6
-#    memorySize: 256
-#    timeout: 10
-#    environment:
-#      variables:
-#        ENV_FIRST: env1
-#        ENV_Third: env2
-#    events:
-#      - timer:
-#          name: timer
-#          parameters:
-#            cronExpression: '*/5 * * * *'
-#            enable: true
-#      - cos:
-#          name: cli-appid.cos.ap-beijing.myqcloud.com
-#          parameters:
-#            bucket: cli-appid.cos.ap-beijing.myqcloud.com
-#            filter:
-#              prefix: filterdir/
-#              suffix: .jpg
-#            events: cos:ObjectCreated:*
-#            enable: true
-#      - apigw:
-#          name: hello_world_apigw
-#          parameters:
-#            stageName: release
-#            serviceId:
-#            httpMethod: ANY
-#      - cmq:
-#          name: cmq_trigger
-#          parameters:
-#            name: test-topic-queue
-#            enable: true
-#      - ckafka:
-#          name: ckafka_trigger
-#          parameters:
-#            name: ckafka-2o10hua5
-#            topic: test
-#            maxMsgNum: 999
-#            offset: latest
-#            enable: true
-
-```
-* 建立index.py文件：```vim index.py```，内容为：
-```python
-# -*- coding: utf8 -*-
-
-
-def main_handler(event, context):
-    print(str(event))
-    return "hello world"
-```
-* 建立node_modules文件夹，并将本项目放入其中
-* 建立腾讯云鉴权文件，```vim ~/credentials```，内容为：
-```txt
-[default]
-tencent_appid = appid
-tencent_secret_id = secretid
-tencent_secret_key = secretkey
-```
-* 然后就可以使用sls的基本功能了。
-
-## 支持资源
-### Runtime
-* tencent-go1
-* tencent-nodejs6
-* tencent-nodejs8
-* tencent-php5
-* tencent-php7
-* tencent-python2
-* tencent-python3
-### 支持触发器
-* Timer
-* APIGW
-* COS
-* CKAFKA
-* CMQ
-
-
-## 功能描述
-### Deploy功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls deploy
-Serverless: Packaging service...
-Serverless: Uploading function my-service-dev-function_one package to cos[sls-cloudfunction-ap-guangzhou]. /Users/dfounderliu/Desktop/project/.serverless/my-service.zip
-Serverless: Uploaded package successful /Users/dfounderliu/Desktop/project/.serverless/my-service.zip
-Serverless: Uploading service to cos[sls-cloudfunction-ap-guangzhou].
-Serverless: Uploaded service successful sls-cloudfunction-ap-guangzhou-1256773370.cos.ap-guangzhou.myqcloud.com/my-service-dev-HHRmZW-2019-10-14-20-10-29.json
-Serverless: Creating function my-service-dev-function_one
-Serverless: Created function my-service-dev-function_one
-Serverless: Updating configure for function my-service-dev-function_one
-Serverless: Setting tags for function my-service-dev-function_one
-Serverless: Creating trigger for function my-service-dev-function_one
-Serverless: Deployed function my-service-dev-function_one successful
-Serverless: Uploading function my-service-dev-function_two package to cos[sls-cloudfunction-ap-guangzhou]. /Users/dfounderliu/Desktop/project/.serverless/my-service.zip
-Serverless: Uploaded package successful /Users/dfounderliu/Desktop/project/.serverless/my-service.zip
-Serverless: Uploading service to cos[sls-cloudfunction-ap-guangzhou].
-Serverless: Uploaded service successful sls-cloudfunction-ap-guangzhou-1256773370.cos.ap-guangzhou.myqcloud.com/my-service-dev-HHRmZW-2019-10-14-20-10-29.json
-Serverless: Creating function my-service-dev-function_two
-Serverless: Created function my-service-dev-function_two
-Serverless: Updating configure for function my-service-dev-function_two
-Serverless: Setting tags for function my-service-dev-function_two
-Serverless: Creating trigger for function my-service-dev-function_two
-Serverless: Deployed function my-service-dev-function_two successful
-
 ```
 
-### Deploy List功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls deploy list
-Serverless: Listing deployments:
-Serverless: -------------
-Serverless: Timestamp: 1571083829
-Serverless: Datetime: 2019-10-14T20:10:29.003Z
-Serverless: Files:
-Serverless: - my-service-dev-HHRmZW-2019-10-14-20-10-29.json
-Serverless: - my-service-dev-HHRmZW-2019-10-14-20-10-29.zip
+新建示例模板的教程[参考此处]()。
+
+
+# 新建项目
+
+项目模板： 
+
+https://github.com/serverless-tencent/serverless-tencent-scf/tree/master/create/template
+
+# 打包服务
+
+## 简介
+
+您可以使用`sls package`命令将您的项目代码打包成部署包，会默认生成到项目目录下的 .serverless 目录。您可以通过追加`--package`参数指定打包目录。
 
 ```
-### Deploy List Functions功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls deploy list functions
-Serverless: Listing functions:
-Serverless: -------------
-Serverless: my-service-dev-function_two: $LATEST
-Serverless: my-service-dev-function_one: $LATEST
-```
-### print功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls print
-service: mytest
-provider:
-  stage: dev
-  region: ap-guangzhou
-  name: tencent
-  credentials: ~/credentials
-  runtime: nodejs8.9
-  cosBucket: DEFAULT
-  role: QCS_SCFExcuteRole
-  memorySize: 256
-  timeout: 10
-  apiGateway:
-    serviceId: tapi-sadasd
-  environment:
-    variables:
-      ENV_FIRST: env1
-      ENV_SECOND: env2
-  vpcConfig:
-    vpcId: test
-    subnetId: test
-plugins:
-  - serverless-tencent-cloudfunction
-package:
-  exclude:
-    - package-lock.json
-    - .gitignore
-    - .git/**
-    - node_modules/**
-  include:
-    - node_modules/moment/**
-  excludeDevDependencies: false
-functions:
-  function_one:
-    handler: index.main_handler
-    description: Tencent Serverless Cloud Function
-    runtime: python3.6
-    memorySize: 256
-    timeout: 10
-```
-### logs功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls logs -f hello_world -s dev
-Serverless: Get function logs...
-DFOUNDERLIU-MB0:project dfounderliu$ sls logs -f hello_world -s dev -t
-Serverless: Get function logs...
-Serverless: 
-StartTime: 2019-10-14 17:05:08
-RetMsg: "Hello World"
-RequestId: b883ca3a-ee61-11e9-8f0c-5254008a4f10
-
-Duration: 0.38
-BillDuration: 100
-MemUsage: 8777728
-
-Log: START RequestId: b883ca3a-ee61-11e9-8f0c-5254008a4f10
-Event RequestId: b883ca3a-ee61-11e9-8f0c-5254008a4f10
-Received event: {
-  "key1": "test value 1",
-  "key2": "test value 2"
-}
-Received context: {'memory_limit_in_mb': 128, 'time_limit_in_ms': 3000, 'request_id': 'b883ca3a-ee61-11e9-8f0c-5254008a4f10', 'environ': 'TENCENTCLOUD_SECRETID=AKID-RJSKA34pPHerQNPb2-030cE_caXpMtfjM1kqs09yKQ_2oAWr5a_GBw-1A26xBjt;TENCENTCLOUD_SECRETKEY=9lKBQCWaVAMGdkh30LoM7eteHNSrpUul5aO4PWCZ7fA=;TENCENTCLOUD_SESSIONTOKEN=OiPtzs0X8hKr6zADUv8xasUtHu5vvacm9fe468ae112cff1a37c710db52817d13IziSvAcb9U0Tv-ODKJn7wMdVDZ3LgWQAZKWuV2wvSalMToEbwaDf_-E2AYc6ISD908AsQeIgUpeqSIIXA0twi146PyIH1e7WMzSrsvn3VeKlHU062mOC02wEEspf1E8UID4LpdvHwrR7cJSCO2_H6_wpwV1JKyzXF0cKVaRO5pZtMOq7goDu3kffLfFpHem5RNMRI3eHokkJBBjuklGPQuQTVC4lV0DfDFqwXjuW5MDfJsc0S-p64h50x6_FaDSnoyAwpydy68OQX3KX1FY0QeOKMt8JGdJ7woD2IkJIJPu1C6w5I-Szrg9Bg3Hb2BNU11iLkk8YdxebxehCalEM0UvJophDbg14ZfL_LTVci1Y;SCF_NAMESPACE=default', 'function_version': '$LATEST', 'function_name': 'my-service-dev-hello_world', 'namespace': 'default', 'get_remaining_time_in_millis': <function main.<locals>.<lambda> at 0x7f0918e87d90>}
-Hello world
-
-END RequestId: b883ca3a-ee61-11e9-8f0c-5254008a4f10
-Report RequestId: b883ca3a-ee61-11e9-8f0c-5254008a4f10 Duration:0ms Memory:128MB MaxMemoryUsed:8.371094MB
-
-```
-### Metrics功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls metrics
-Serverless: Service wide metrics
-2019-10-13 16:47:44 - 2019-10-14 16:47:44
-
-Service:
-  Invocations: 11
-  Outflows: 0
-  Errors: 0
-  Duration(avg.): 0.07390909090909091 ms
-
-Functions: 
-  my-service-dev-hello_world: 
-    Invocations: 11
-    Outflows: 0
-    Errors: 0
-    Duration(avg.): 0.07390909090909091 ms
-
-  hello_world_test: 
-    Invocations: 0
-    Outflows: 0
-    Errors: 0
-    Duration(avg.): 0 ms
-
-```
-### Rollback功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls rollback -v
-Serverless: Use a timestamp from the deploy list below to rollback to a specific version.
-Run `sls rollback -t YourTimeStampHere`
-Serverless: Listing deployments:
-Serverless: -------------
-Serverless: Timestamp: 1571083829
-Serverless: Datetime: 2019-10-14T20:10:29.003Z
-Serverless: Files:
-Serverless: - my-service-dev-HHRmZW-2019-10-14-20-10-29.json
-Serverless: - my-service-dev-HHRmZW-2019-10-14-20-10-29.zip
-DFOUNDERLIU-MB0:project dfounderliu$ sls rollback -t 1571083829
-Serverless: Rollback function my-service-dev-function_one
-Serverless: Rollback function my-service-dev-function_one
-Serverless: Rollback configure for function my-service-dev-function_one
-Serverless: Setting tags for function my-service-dev-function_one
-Serverless: Rollback trigger for function my-service-dev-function_one
-Serverless: Deployed function my-service-dev-function_one successful
-Serverless: Rollback function my-service-dev-function_two
-Serverless: Rollback function my-service-dev-function_two
-Serverless: Rollback configure for function my-service-dev-function_two
-Serverless: Setting tags for function my-service-dev-function_two
-Serverless: Rollback trigger for function my-service-dev-function_two
-Serverless: Deployed function my-service-dev-function_two successful
-
+serverless package
 ```
 
-### Invoke功能
-```text
-DFOUNDERLIU-MB0:project dfounderliu$ sls invoke -f hello_world
-Serverless: 
-
-"Hello World"
-
-----------
-Log: 
-START RequestId: 954572f6-ee63-11e9-9103-5254008a4f10
-Event RequestId: 954572f6-ee63-11e9-9103-5254008a4f10
-Received event: {}
-Received context: {'memory_limit_in_mb': 128, 'time_limit_in_ms': 3000, 'request_id': '954572f6-ee63-11e9-9103-5254008a4f10', 'environ': 'TENCENTCLOUD_SECRETID=AKID-RJSKA34pPHerQNPb2-030cE_caXpMtfjM1kqs09yKQ_2oAWr5a_GBw-1A26xBjt;TENCENTCLOUD_SECRETKEY=9lKBQCWaVAMGdkh30LoM7eteHNSrpUul5aO4PWCZ7fA=;TENCENTCLOUD_SESSIONTOKEN=OiPtzs0X8hKr6zADUv8xasUtHu5vvacm9fe468ae112cff1a37c710db52817d13IziSvAcb9U0Tv-ODKJn7wMdVDZ3LgWQAZKWuV2wvSalMToEbwaDf_-E2AYc6ISD908AsQeIgUpeqSIIXA0twi146PyIH1e7WMzSrsvn3VeKlHU062mOC02wEEspf1E8UID4LpdvHwrR7cJSCO2_H6_wpwV1JKyzXF0cKVaRO5pZtMOq7goDu3kffLfFpHem5RNMRI3eHokkJBBjuklGPQuQTVC4lV0DfDFqwXjuW5MDfJsc0S-p64h50x6_FaDSnoyAwpydy68OQX3KX1FY0QeOKMt8JGdJ7woD2IkJIJPu1C6w5I-Szrg9Bg3Hb2BNU11iLkk8YdxebxehCalEM0UvJophDbg14ZfL_LTVci1Y;SCF_NAMESPACE=default', 'function_version': '$LATEST', 'function_name': 'my-service-dev-hello_world', 'namespace': 'default', 'get_remaining_time_in_millis': <function main.<locals>.<lambda> at 0x7f0918e897b8>}
-Hello world
-
-END RequestId: 954572f6-ee63-11e9-9103-5254008a4f10
-Report RequestId: 954572f6-ee63-11e9-9103-5254008a4f10 Duration:0.34ms Memory:128MB MaxMemoryUsed:8.375MB
-```
-
-## 相关资源获取
-
-建立鉴权文件（配置文件）：
-绝对地址，默认为 ~/credentials：
-```text
-[default]
-tencent_appid = appid
-tencent_secret_id = secretid
-tencent_secret_key = secretkey
-```
-
-Serverless Framwork Yaml的完整内容（仅针对腾讯云）:
-```yaml
-service: mytest
-
-provider:
-  name: tencent
-  credentials: ~/credentials # 绝对地址，默认为 ~/credentials
-  stage: dev # 阶段，默认为 dev
-  runtime: nodejs8.9 # 可以指定腾讯云Serverless Cloud Function支持的Runtime， 默认nodejs8.9
-  cosBucket: DEFAULT # 可以指定，默认为DEFAULT: sls-cloudfunction-{region}
-  role: QCS_SCFExcuteRole # 可以指定，默认是QCS_SCFExcuteRole
-  memorySize: 256 # 默认256M，优先级：函数设置>全局设置>默认设置
-  timeout: 10 # 默认10s，优先级：函数设置>全局设置>默认设置
-  region: ap-guangzhou # 默认sp-guangzhou，优先级：函数设置>全局设置>默认设置
-  apiGateway:
-    serviceId: tapi-sadasd # 全局API网关serviceId
-  environment: # 公共环境变量
-    variables:
-      ENV_FIRST: env1
-      ENV_SECOND: env2
-  vpcConfig:
-    vpcId: test
-    subnetId: test
-
-plugins:
-  - serverless-tencent-cloudfunction
-
-package:
-  exclude:
-    - package-lock.json
-    - .gitignore
-    - .git/**
-    - node_modules/** # exclude all node_modules....
-  include:
-    - node_modules/moment/** # except necessary ones
-  excludeDevDependencies: false
 
 
-functions:
-  function_one:
-    handler: index.main_handler
-    description: Tencent Serverless Cloud Function
-    runtime: python3.6
-    memorySize: 256
-    timeout: 10
-    environment:
-      variables:
-        ENV_FIRST: env1
-        ENV_Third: env2
-    vpcConfig:
-      vpcId: test
-      subnetId: test
-    events:
-      - timer:
-          name: timer
-          parameters:
-            cronExpression: '*/5 * * * *'
-            enable: true
-      - cos:
-          name: cli-appid.cos.ap-beijing.myqcloud.com
-          parameters:
-            bucket: cli-appid.cos.ap-beijing.myqcloud.com
-            filter:
-              prefix: filterdir/
-              suffix: .jpg
-            events: cos:ObjectCreated:*
-            enable: true
-      - apigw:
-          name: hello_world_apigw
-          parameters:
-            stageName: release
-            serviceId:
-            httpMethod: ANY
-      - cmq:
-          name: cmq_trigger
-          parameters:
-            name: test-topic-queue
-            enable: true
-      - ckafka:
-          name: ckafka_trigger
-          parameters:
-            name: ckafka-2o10hua5
-            topic: test
-            maxMsgNum: 999
-            offset: latest
-            enable: true
-  function_two:
-    handler: index.main_handler
-    description: Tencent Serverless Cloud Function
-    runtime: python3.6
-    memorySize: 256
-    timeout: 10
+## 参数说明
+
+- `--stage` 或`-s`  目标部署环境，您可以自定义指定诸如`dev`，`pro` 等环境参数，默认为`dev`。部署后，环境参数将追加至云函数名之后，且会作为云函数的标签。
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+- `--package`或`-p` 自定义部署包目录
+
+
+
+## 示例
+
+### 默认打包
 
 ```
-
-转换方法：provider/tencentProvider/getServiceResource()
-转换后的TSAM为：
-```json
-{
-	"Service": "mytest",
-	"Stage": "dev",
-	"ServiceFileName": "mytest-dev-a3m7y8-2019-10-14-10-49-21.json",
-	"CreateTime": "2019-10-14T10:49:21.415Z",
-	"CreateTimestamp": 1571050161000,
-	"Resources": {
-		"default": {
-			"Type": "TencentCloud::Serverless::Namespace",
-			"function_one": {
-				"Type": "TencentCloud::Serverless::Function",
-				"Properties": {
-					"CodeUri": {
-						"Bucket": "sls-cloudfunction-ap-guangzhou-1256773370",
-						"Key": "mytest-dev-a3m7y8-2019-10-14-10-49-21.zip"
-					},
-					"Type": "Event",
-					"Description": "Tencent Serverless Cloud Function",
-					"Role": "QCS_SCFExcuteRole",
-					"Handler": "index.main_handler",
-					"MemorySize": 256,
-					"Timeout": 10,
-					"Region": "ap-guangzhou",
-					"Runtime": "python3.6",
-					"Tags": {
-						"CLI": "Serverless",
-						"Application": "mytest",
-						"Stage": "dev"
-					},
-					"Events": [{
-						"timer": {
-							"Type": "Timer",
-							"Properties": {
-								"CronExpression": "*/5 * * * *",
-								"Enable": true
-							}
-						}
-					}, {
-						"cli-appid.cos.ap-beijing.myqcloud.com": {
-							"Type": "COS",
-							"Properties": {
-								"Bucket": "cli-appid.cos.ap-beijing.myqcloud.com",
-								"Events": "cos:ObjectCreated:*",
-								"Enable": true,
-								"Filter": {
-									"Prefix": "filterdir/",
-									"Suffix": ".jpg"
-								}
-							}
-						}
-					}, {
-						"hello_world_apigw": {
-							"Type": "APIGW",
-							"Properties": {
-								"StageName": "release",
-								"HttpMethod": "ANY",
-								"ServiceId": "",
-								"Enable": true
-							}
-						}
-					}, {
-						"cmq_trigger": {
-							"Type": "CMQ",
-							"Properties": {
-								"Name": "test-topic-queue",
-								"Enable": true
-							}
-						}
-					}, {
-						"ckafka_trigger": {
-							"Type": "Ckafka",
-							"Properties": {
-								"MaxMsgNum": 999,
-								"Offset": "latest",
-								"Enable": true
-							}
-						}
-					}]
-				},
-				"VpcConfig": {
-					"VpcId": "test",
-					"SubnetId": "test"
-				},
-				"Environment": {
-					"Variables": {
-						"ENV_FIRST": "env1",
-						"ENV_SECOND": "env2",
-						"ENV_Third": "env2"
-					}
-				}
-			},
-			"function_two": {
-				"Type": "TencentCloud::Serverless::Function",
-				"Properties": {
-					"CodeUri": {
-						"Bucket": "sls-cloudfunction-ap-guangzhou-1256773370",
-						"Key": "mytest-dev-a3m7y8-2019-10-14-10-49-21.zip"
-					},
-					"Type": "Event",
-					"Description": "Tencent Serverless Cloud Function",
-					"Role": "QCS_SCFExcuteRole",
-					"Handler": "index.main_handler",
-					"MemorySize": 256,
-					"Timeout": 10,
-					"Region": "ap-guangzhou",
-					"Runtime": "python3.6",
-					"Tags": {
-						"CLI": "Serverless",
-						"Application": "mytest",
-						"Stage": "dev"
-					}
-				},
-				"VpcConfig": {
-					"VpcId": "test",
-					"SubnetId": "test"
-				},
-				"Environment": {
-					"Variables": {
-						"ENV_FIRST": "env1",
-						"ENV_SECOND": "env2",
-						"ENV_Third": "env2"
-					}
-				}
-			}
-		}
-	}
-}
+serverless package
 ```
+
+执行以上命令，将会默认指定目标部署 stage (dev) 和 region（ap-guangzhou），部署包会生成在您项目下的 .serverless 目录。
+
+
+
+### 指定区域和环境
+
+```
+serverless package --stage pro --region ap-shanghai
+```
+
+执行以上命令，将会指定目标部署stage (pro) 和 region（ap-shanghai），部署包会生成在您项目下的 .serverless 目录。
+
+
+
+### 指定目录
+
+```
+serverless package --package /path/to/package/directory
+```
+
+执行以上命令，将会指定目标部署stage (dev) 和 region（ap-guangzhou），部署包会生成在目录`/path/to/package/directory` 。
+
+
+
+# 服务部署
+
+## 简介
+
+您可以使用`sls deploy`命令部署您的整个服务，当您的服务架构有更新时（如，您修改了 serverless.yaml）您可执行该命令。如果您的云函数代码有变更，您想快速上传或者您想更新云函数配置，您可以使用`serverless deploy function -f myFunction` 命令。
+
+```
+serverless deploy
+```
+
+
+
+## 参数说明
+
+- `--config` 或`-c`  自定义配置文件名（除`serverless.yml.yaml|.js|.json`之外）
+- `--stage`或 `-s`目标部署环境，默认为`dev`
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+- `--package`或`-p` 自定义部署包路径，指定后将跳过打包步骤
+- `--force`强制部署，升级情况下，默认升级代码和配置，触发器默认不升级。加了--force参数会进行触发器的升级
+- `--function`或 `-f` 执行 `deploy function`（见上方描述），不可以和`--package`共用
+
+
+
+## 说明
+
+执行`serverless deploy`后，Serverless Framework 会先执行 `serverless package` 然后进行部署。
+
+部署时，会在您的账号下自动生成 [COS bucket](https://console.cloud.tencent.com/cos5/bucket) 并存储部署包。
+
+## 示例
+
+### 默认部署
+
+```
+serverless deploy
+```
+
+执行以上命令，将会部署至 stage (dev) 和 region（ap-guangzhou）。
+
+
+
+### 指定区域和环境
+
+```
+serverless deploy --stage pro --region ap-shanghai
+```
+
+执行以上命令，将会部署至 stage (pro) 和 region（ap-shanghai）。
+
+
+
+### 指定部署包
+
+```
+serverless deploy --package /path/to/package/directory
+```
+
+执行以上命令，将会跳过打包步骤，使用`/path/to/package/directory` 下的部署包进行部署。
+
+# 函数部署
+
+## 简介
+
+您可以使用`sls deploy function`命令部署您的某个云函数，当您的云函数代码有变更，您想快速上传或者您想更新云函数配置，您可以使用该命令。
+
+```
+serverless deploy function -f functionName
+```
+
+
+
+## 参数说明
+
+- `--function`或 `-f` 部署函数名
+- `--stage`或 `-s`目标部署环境，默认为`dev`
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+
+
+
+## 示例
+
+### 默认部署
+
+```
+serverless deploy function --function helloWorld
+```
+
+执行以上命令，将会部署函数至 stage (dev) 和 region（ap-guangzhou）。
+
+
+
+### 指定区域和环境
+
+```
+serverless deploy function --function helloWorld --stage pro --region ap-shanghai
+```
+
+执行以上命令，将会部署至 stage (pro) 和 region（ap-shanghai）。
+
+# 部署列表
+
+## 简介
+
+您可以使用`sls deploy list [function]`命令查询您的部署信息。
+
+如果想要查看您 COS bucket 里的部署包信息，您可以执行 `serverless deploy list`；
+
+如果您想要查看已经部署的云函数信息，您可以执行`serverless deploy list functions`.
+
+这些展示信息在您想要使用回滚功能`serverless rollback`时会用到。
+
+
+
+
+## 参数说明
+
+- `--stage`或 `-s`目标部署环境，默认为`dev`
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+
+
+
+## 示例
+
+### 部署列表
+
+```
+serverless deploy list
+```
+
+
+
+### 部署函数列表
+
+```
+serverless deploy list functions
+```
+
+执行上述命令，您可以获取已部署的函数名和版本信息。
+
+
+# 回滚服务
+
+## 简介
+
+回滚已部署的服务版本。
+
+```
+serverless rollback --timestamp timestamp
+```
+
+执行回滚前可以通过`sls rollback -v` 获取已部署的历史版本时间戳。
+
+## 参数说明
+
+- `--timestamp` 或 `-t` 已部署的历史版本时间戳。
+- `--verbose`或 `-v` 获取历史部署版本
+
+
+
+## 示例
+
+您可以先执行`sls rollback -v` 获取您在 COS 里的历史部署版本，然后指定某一版本进行回滚。
+
+```
+$ sls rollback -v
+$ sls rollback -t 1571240207
+```
+
+# 获取详情
+
+## 简介
+
+查看云端已部署服务的详细信息: 环境，区域，函数列表
+
+```
+serverless info
+```
+
+
+
+## 参数说明
+
+- `--stage`或 `-s`目标部署环境，如果未指定，则会读取 `serverless.yaml` 里的 `stage` 信息，如果没有，则默认为`dev`
+- `--region`或`-r` 目标部署区域，如果未指定，则会读取 `serverless.yaml` 里的 `region` 信息，如果没有，默认为 `ap-guangzhou`
+
+
+
+## 示例
+
+**注意：函数调用和运行数据生成之间会有一些延时，函数调用之后几秒才能获取对应数据。**
+
+
+
+### 获取默认运行数据
+
+```
+serverless metrics
+```
+
+执行上述命令，获取服务最近 24 小时运行数据统计。
+
+### 获取指定时段运行数据
+
+```
+serverless metrics --startTime 2019-01-01 --endTime 2019-01-02
+```
+
+执行上述命令，获取 2019-01-01 至 2019-01-02 的服务运行数据。
+
+### 获取函数运行数据
+
+```
+serverless metrics --function hello
+```
+
+执行上述命令，获取最近 24 小时的函数 `hello` 运行数据。
+
+### 获取指定时段函数运行数据
+
+```
+serverless metrics --function hello --startTime 2019-01-01 --endTime 2019-01-02
+```
+
+执行上述命令，获取 2019-01-01 至 2019-01-02 的函数 `hello` 运行数据。
+
+# 日志查看
+
+## 简介
+
+查看云端函数运行日志。
+
+```
+serverless logs -f hello
+
+# 查看实时最新日志可以追加参数 -t
+serverless logs -f hello -t
+```
+
+
+
+## 参数说明
+
+- `--function` 或 `-f` 已部署的云函数名。 【必填】
+- `--stage`或 `-s`目标部署环境，如果未指定，则会读取 `serverless.yaml` 里的 `stage` 信息，如果没有，则默认为`dev`
+- `--region`或`-r` 目标部署区域，如果未指定，则会读取 `serverless.yaml` 里的 `region` 信息，如果没有，默认为 `ap-guangzhou`
+
+- `--startTime`  日志开始时间 ，如`"2019-7-12 00:00:00"`
+- `--tail` 或 `-t`  实时获取最新日志
+- `--interval`  日志输出间隔，当您启用了 tail 功能，您可以控制日志输出频率，默认是 1000 ms 。
+
+
+## 示例
+
+### 获取默认日志
+
+```
+serverless logs -f hello
+```
+
+执行上述命令，获取云函数`hello`最近十分钟的调用日志。
+
+### 实时日志
+
+```
+serverless logs -f hello -t
+```
+
+执行上述命令，获取 10 秒前的日志，并每 10 秒更新一次日志。
+
+# 删除服务
+
+## 简介
+
+您可以使用`sls remove`命令删除您部署的服务。
+
+```
+serverless remove
+```
+
+
+
+## 参数说明
+
+- `--stage`或 `-s`目标部署环境，默认为`dev`
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+
+
+
+## 示例
+
+### 删除指定环境和区域的服务
+
+```
+serverless remove --stage dev --region ap-guangzhou
+```
+
+执行上述命令，删除当前工作区定义的已部署至 stage (dev) 和 region（ap-guangzhou）的服务。
+
+# 云端调用
+
+## 简介
+
+调用已部署的云函数，支持发送测试数据到云函数，返回函数日志并展示其他调用关键信息。
+
+```
+serverless invoke --function functionName
+```
+
+
+
+## 参数说明
+
+- `--function` 或 `-f` 已部署到云函数名。 【必填】
+- `--stage`或 `-s`目标部署环境，默认为`dev`
+- `--region`或`-r` 目标部署区域，默认为 `ap-guangzhou`
+
+
+
+
+## 示例
+
+### 调用指定函数
+
+```
+serverless invoke --function functionName --stage dev --region ap-guangzhou
+```
+
+执行上述命令，调用已部署至广州区域的 `dev` 环境下的 `functionName` 函数，调用结果将输出至终端。
+
+# 数据统计
+
+## 简介
+
+查看云端函数运行数据。
+
+```
+serverless metrics
+```
+
+
+
+## 参数说明
+
+- `--function` 或 `-f` 已部署到云函数名。 【必填】
+- `--stage`或 `-s`目标部署环境，如果未指定，则会读取 `serverless.yaml` 里的 `stage` 信息，如果没有，则默认为`dev`
+- `--region`或`-r` 目标部署区域，如果未指定，则会读取 `serverless.yaml` 里的 `region` 信息，如果没有，默认为 `ap-guangzhou`
+
+- `--startTime`  函数运行开始时间 ，如`"2019-7-12 00:00:00"`
+- `--endTime`  函数运行结束时间 ，如`"2019-7-12 00:10:00"`
+
+
+
+## 示例
+
+**注意：函数调用和运行数据生成之间会有一些延时，函数调用之后几秒才能获取对应数据。**
+
+
+
+### 获取默认运行数据
+
+```
+serverless metrics
+```
+
+执行上述命令，获取服务最近 24 小时运行数据统计。
+
+### 获取指定时段运行数据
+
+```
+serverless metrics --startTime 2019-01-01 --endTime 2019-01-02
+```
+
+执行上述命令，获取 2019-01-01 至 2019-01-02 的服务运行数据。
+
+### 获取函数运行数据
+
+```
+serverless metrics --function hello
+```
+
+执行上述命令，获取最近 24 小时的函数 `hello` 运行数据。
+
+### 获取指定时段函数运行数据
+
+```
+serverless metrics --function hello --startTime 2019-01-01 --endTime 2019-01-02
+```
+
+执行上述命令，获取 2019-01-01 至 2019-01-02 的函数 `hello` 运行数据。
+
+
+
+
+
+
+
+
+
+
+
+# 常见问题
+
+### Serverless Framework 和 云函数 SCF 的区别
+云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，帮助您在无需购买和管理服务器的情况下运行代码 。
+Serverless Framework 是无服务器应用框架，提供将云函数 SCF ，API 网关，DB 等资源组合的业务框架，开发者可以直接基于框架编写业务逻辑，而无需关注底层资源的配置和管理。
+
+### Serverless Framework 提供了哪些应用框架
+目前已提供 REST API 和 基础 website ，更多贴合实际应用场景的框架在持续输出中。
+
+### 云函数执行超时怎么处理？
+
+超时客户端会直接断开连接并报错，建议控制函数执行时间，尽量不要把耗时长的操作放在客户端直接调用的云函数内。
+
+### 云函数内置模块怎么使用？
+
+云函数内置模块已经集成于运行环境，可以直接使用。
+如果内置模块的版本不能满足需求，可以自行安装模块到云函数内，默认会被优先使用。
+目前已支持的内置模块为 request 2.87.1 。
+
+### 云函数测试时，部分日志丢失了？
+
+- 云函数测试时，如果以同步调用的方式（超时时间小于 20 秒），返回的日志最多为 4k，超过 4k 的日志不显示。
+- 如果以异步调用的方式（超时时间大于或等于 20 秒），返回的日志最多为 6M，超过 6M 的日志不显示。
+
+
+
