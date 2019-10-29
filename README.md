@@ -97,8 +97,6 @@ provider:
   credentials: ~/credentials
 ```
 
-新建示例模板的教程[参考此处]()。
-
 
 # 新建项目
 

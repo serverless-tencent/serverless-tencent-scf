@@ -1,6 +1,6 @@
 {
   "name": "serverless-tencent-scf",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Teencent Cloud Functions.",
   "main": "index.js",
   "author": "serverless.com",

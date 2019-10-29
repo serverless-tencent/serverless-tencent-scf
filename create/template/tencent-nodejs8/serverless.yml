@@ -47,8 +47,8 @@ functions:
   function_one:
     handler: index.main_handler
 #    description: Tencent Serverless Cloud Function
-#    runtime: Nodejs8.9
-#    memorySize: 256
+    runtime: Nodejs8.9
+#    memorySilsze: 256
 #    timeout: 10
 #    environment:
 #      variables:
