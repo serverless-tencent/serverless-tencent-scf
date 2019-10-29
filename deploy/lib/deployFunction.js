@@ -18,6 +18,9 @@ class DeployFunction extends AbstractHandler {
 		if (!func) {
 			await this.createFunction(ns, funcObject, packagePath);
 		} else {
+			if(func.Runtime != funcObject.Properties.Runtime){
+				throw `Runtime error: Release runtime(${func.Runtime}) and local runtime(${funcObject.Properties.Runtime}) are inconsistent`
+			}
 			await this.updateFunctionCode(ns, funcObject, packagePath);
 			await this.updateConfiguration(ns, func, funcObject);
 			return func;
