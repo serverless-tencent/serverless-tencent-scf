@@ -13,17 +13,16 @@ class Serverless {
             service: 'test-service'
         };
 
-        this.service.getAllFunctions = function() { //eslint-disable-line
+        this.service.getAllFunctions = function() { 
             return Object.keys(this.functions);
         };
 
-        this.service.getFunction = function(functionName) { //eslint-disable-line
-            // NOTE the stage is always 'dev'!
-            this.functions[functionName]
-                .name = `${this.service}-dev-${functionName}`;
-            return this.functions[functionName];
+        this.service.getFunction = function(funcName) {
+            this.functions[funcName]
+                .name = `${this.service}-dev-${funcName}`;
+            return this.functions[funcName];
         };
-        
+
         this.utils = {
             writeFileSync() {},
             readFileSync() {},

@@ -1,0 +1,17 @@
+language: node_js
+
+node_js:
+    - '8'
+    - '9'
+    - '10'
+
+sudo: false
+
+env:
+    - NODE_ENV=test
+
+install:
+    - travis_retry npm install
+
+script:
+    - npm test
