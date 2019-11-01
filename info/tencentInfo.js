@@ -24,7 +24,8 @@ class TencentInfo {
                 .then(this.validate)
                 .then(this.setDefaults),
 
-            'info:info': this.info.bind(this),
+            'info:info': () => BbPromise.bind(this)
+                .then(this.info),
         };
     }
 

@@ -1,3 +1,7 @@
 --recursive 
 -r test/init.js
 invoke/**/*.test.js
+logs/**/*.test.js
+remove/**/*.test.js
+info/**/*.test.js
+metrics/**/*.test.js

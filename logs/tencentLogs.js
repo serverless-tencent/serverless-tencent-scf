@@ -25,7 +25,8 @@ class TencentLogs {
                 .then(this.validate)
                 .then(this.setDefaults),
 
-            'logs:logs': this.logs.bind(this),
+            'logs:logs': () => BbPromise.bind(this)
+                .then(this.logs),
         };
     }
 

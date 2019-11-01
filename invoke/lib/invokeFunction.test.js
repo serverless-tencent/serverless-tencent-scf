@@ -15,12 +15,12 @@ describe('InvokeFunction@Library', () => {
         };
         invokeFunction = new InvokeFunction('appid', 'secret_id', 'secret_key', options);
 
-        invokeFunctionStub = sinon.stub(invokeFunction, 'testInvoke')
+        invokeFunctionStub = sinon.stub(invokeFunction, 'invoke')
             .returns(Promise.resolve());
     });
 
     afterEach(() => {
-        invokeFunction.testInvoke.restore();
+        invokeFunction.invoke.restore();
     });
 
     it('should make the invoke function accessible', () => {
@@ -28,7 +28,7 @@ describe('InvokeFunction@Library', () => {
     });
 
     it('should run library invoke function', () => invokeFunction
-        .testInvoke().then(()=>{
+        .invoke().then(()=>{
         invokeFunctionStub.calledOnce.should.equal(true)
     }));
 });

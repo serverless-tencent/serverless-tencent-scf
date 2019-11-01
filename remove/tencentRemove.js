@@ -24,7 +24,8 @@ class TencentRemove {
                 .then(this.validate)
                 .then(this.setDefaults),
 
-            'remove:remove': this.remove.bind(this),
+            'remove:remove': () => BbPromise.bind(this)
+                .then(this.remove),
         };
     }
 
