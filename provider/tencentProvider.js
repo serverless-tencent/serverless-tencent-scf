@@ -21,7 +21,6 @@ class TencentProvider {
 		this.getCredentials(this.serverless, this.options);
 		this.serverless.setProvider(constants.providerName, this);
 		this.provider = this;
-		this.getServiceResource();
 	}
 
 	jsonObjectIsEmpty(jsonObject) {

@@ -24,8 +24,8 @@ class TencentInvoke {
 			'before:invoke:invoke': () => BbPromise.bind(this)
 				.then(this.validate)
 				.then(this.setDefaults),
-
-			'invoke:invoke': this.invoke.bind(this)
+			'invoke:invoke': () => BbPromise.bind(this)
+				.then(this.invoke)
 		};
 	}
 
