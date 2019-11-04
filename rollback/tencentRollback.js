@@ -26,7 +26,8 @@ class TencentRollback {
 				.then(this.validate)
 				.then(this.setDefaults),
 
-			'rollback:rollback': this.rollback.bind(this),
+			'rollback:rollback': () => BbPromise.bind(this)
+				.then(this.rollback),
 		};
 	}
 

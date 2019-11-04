@@ -5,3 +5,6 @@ logs/**/*.test.js
 remove/**/*.test.js
 info/**/*.test.js
 metrics/**/*.test.js
+rollback/**/*.test.js
+deploy/**/*.test.js
+provider/**/*.test.js

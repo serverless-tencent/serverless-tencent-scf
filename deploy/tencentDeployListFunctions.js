@@ -8,7 +8,7 @@ const tencentProvider = require('../provider/tencentProvider');
 const ListFunctions = require('./lib/deployListFunctions');
 const InfoFunction = require('../info/lib/displayServiceInfo');
 
-class TencentInvoke {
+class TencentDeployListFunction {
 
     constructor(serverless, options) {
         this.serverless = serverless;
@@ -26,7 +26,8 @@ class TencentInvoke {
                 .then(this.validate)
                 .then(this.setDefaults),
 
-            'deploy:list:functions:log': this.functionList.bind(this)
+            'deploy:list:functions:log': () => BbPromise.bind(this)
+                .then(this.functionList)
         };
     }
 
@@ -66,4 +67,4 @@ class TencentInvoke {
     }
 }
 
-module.exports = TencentInvoke;
+module.exports = TencentDeployListFunction;

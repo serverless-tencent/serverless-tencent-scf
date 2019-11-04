@@ -26,7 +26,8 @@ class TencentDeploy {
 				.then(this.validate)
 				.then(this.setDefaults),
 
-			'deploy:deploy': this.deploy.bind(this),
+			'deploy:deploy': () => BbPromise.bind(this)
+				.then(this.deploy),
 		};
 	}
 

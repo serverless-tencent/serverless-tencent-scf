@@ -25,8 +25,10 @@ class TencentDeployFunction {
 			'deploy:function:initialize': () => BbPromise.bind(this)
 				.then(this.validate)
 				.then(this.setDefaults),
-			'deploy:function:packageFunction': this.packageFunction.bind(this),
-			'deploy:function:deploy': this.deploy.bind(this),
+			'deploy:function:packageFunction': () => BbPromise.bind(this)
+				.then(this.packageFunction),
+			'deploy:function:deploy': () => BbPromise.bind(this)
+				.then(this.deploy),
 		};
 	}
 
