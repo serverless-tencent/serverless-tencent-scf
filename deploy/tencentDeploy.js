@@ -104,7 +104,6 @@ class TencentDeploy {
 			if (this.options.function && this.options.function != funcName) {
 				continue
 			}
-			console.log("===")
 			const deployFunctionName = this.provider.getFunctionName(funcName)
 			outputInformation = outputInformation + `  ${funcName}: ${deployFunctionName}\n`
 			functionInformation = await func.getFunction("default", deployFunctionName, false)
