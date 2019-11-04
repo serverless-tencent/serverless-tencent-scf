@@ -8,6 +8,7 @@ const _ = require('lodash');
 const tencentProvider = require('../provider/tencentProvider');
 const DeployFunction = require('./lib/deployFunction');
 const DeployTrigger = require('./lib/deployTrigger');
+const MetricsFunction = require('../metrics/lib/displayMetrics');
 
 class TencentDeployFunction {
 	constructor(serverless, options) {
@@ -94,6 +95,32 @@ class TencentDeployFunction {
 			}
 		);
 		this.serverless.cli.log(`Deployed function ${funcObject.FuncName} successful`);
+
+		let outputInformation = `Service Information\nservice: ${this.serverless.service.service} \nstage: ${this.provider.options.stage} \nregion: ${this.provider.options.region} \nstack: ${this.serverless.service.service}-${this.provider.options.stage}\n`
+		const MetricsHandler = new MetricsFunction(this.options.credentials.tencent_appid,
+			this.options.credentials.tencent_secret_id,
+			this.options.credentials.tencent_secret_key, {region});
+		const functionList = await MetricsHandler.functionList(this.serverless.service.service, this.options.stage);
+		const functionListData = functionList.Functions || [];
+		outputInformation = outputInformation + 'resources: ' + functionListData.length + "\nfunctions: "
+		let functionInformation
+		const deployFunctionName = this.provider.getFunctionName(this.options.function)
+		outputInformation = outputInformation + `  ${this.options.function}: ${deployFunctionName}\n`
+		functionInformation = await func.getFunction("default", deployFunctionName, false)
+		if (functionInformation.Triggers && functionInformation.Triggers.length > 0) {
+			for (let i = 0; i <= functionInformation.Triggers.length; i++) {
+				const trigger = functionInformation.Triggers[i]
+				try {
+					if (trigger.Type == 'apigw') {
+						const triggerDesc = JSON.parse(trigger.TriggerDesc)
+						outputInformation = outputInformation + `    ${triggerDesc.api.requestConfig.method} - ${triggerDesc.service.subDomain}\n`
+					}
+				} catch (e) {
+				}
+			}
+		}
+
+		this.serverless.cli.log(outputInformation)
 	}
 }
 

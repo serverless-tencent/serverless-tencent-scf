@@ -21,6 +21,7 @@ class TencentProvider {
 		this.getCredentials(this.serverless, this.options);
 		this.serverless.setProvider(constants.providerName, this);
 		this.provider = this;
+		this.getServiceResource();
 	}
 
 	jsonObjectIsEmpty(jsonObject) {
@@ -187,15 +188,18 @@ class TencentProvider {
 		return trigger;
 	}
 
-	getAPIGWEvent(event, funcObject) {
+	getAPIGWEvent(event, funcObject, apigwTimes) {
 		const trigger = {};
 		const apiGateway = this.serverless.service.provider.apiGateway;
+		const serviceId = apigwTimes == 0 ?
+			event.parameters.serviceId || (apiGateway && apiGateway.serviceId ? apiGateway.serviceId : "") :
+			event.parameters.serviceId || ""
 		trigger[event.name] = {
 			'Type': 'APIGW',
 			'Properties': {
 				'StageName': event.parameters.stageName,
 				'HttpMethod': event.parameters.httpMethod,
-				'ServiceId': event.parameters.serviceId || (apiGateway && apiGateway.serviceId ? apiGateway.serviceId : ""),
+				'ServiceId': serviceId,
 				'IntegratedResponse': event.parameters.integratedResponse,
 				'Enable': event.parameters.enable
 			}
@@ -253,6 +257,7 @@ class TencentProvider {
 			const funtionResource = this.getFunctionResource(funcObject, functionName, serviceStr, keyTime);
 			const eventList = new Array();
 			if (funcObject.events) {
+				let apigwTimes = 0
 				for (var eventIndex = 0; eventIndex < funcObject.events.length; eventIndex++) {
 					const event = funcObject.events[eventIndex];
 					const eventType = Object.keys(event)[0];
@@ -265,9 +270,10 @@ class TencentProvider {
 						const triggerName = triggerResource.TriggerName;
 						eventList.push(triggerResource);
 					} else if (eventType === 'apigw') {
-						const triggerResource = this.provider.getAPIGWEvent(event.apigw, funcObject);
+						const triggerResource = this.provider.getAPIGWEvent(event.apigw, funcObject, apigwTimes);
 						const triggerName = triggerResource.TriggerName;
 						eventList.push(triggerResource);
+						apigwTimes = apigwTimes + 1
 					} else if (eventType === 'ckafka') {
 						const triggerResource = this.provider.getCkafkaEvent(event.ckafka, funcObject);
 						const triggerName = triggerResource.TriggerName;
