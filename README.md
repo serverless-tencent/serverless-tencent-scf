@@ -1,7 +1,7 @@
 [![npm version](https://badge.fury.io/js/serverless-tencent-scf.svg)](https://badge.fury.io/js/serverless-tencent-scf)
 [![Build Status](https://api.travis-ci.org/serverless-tencent/serverless-tencent-scf.svg?branch=testing)](https://api.travis-ci.org/serverless-tencent/serverless-tencent-scf)
 
-[![Serverless Framework Tencent Cloud Plugin](https://s3.amazonaws.com/assets.github.serverless/github_readme_serverless_plugin_tencent.png)](http://serverless.com)
+[![Serverless Framework Tencent Cloud Plugin](https://s3.amazonaws.com/assets.general.serverless.com/framework_plugin_tencent/readme-provider-tencent-serverless.png)](http://serverless.com)
 
 
 
