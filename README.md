@@ -77,7 +77,7 @@ $ npm install
 
 ### Set up the credentials
 
-[Configure your Tencent Cloud account](./credentials.md) to work with the Serverless Framework.
+[Configure your Tencent Cloud account](./docs/en/credentials.md) to work with the Serverless Framework.
 
 ### Set up an endpoint
 
