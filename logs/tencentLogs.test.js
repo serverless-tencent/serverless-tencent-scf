@@ -1,5 +1,6 @@
 'use strict';
-
+const fs              = require('fs');
+const os              = require('os');
 const sinon           = require('sinon');
 const TencentProvider = require('../provider/tencentProvider');
 const TencentLogs     = require('./tencentLogs');
@@ -9,6 +10,8 @@ describe('TencentLogs', () => {
     let serverless;
     let options;
     let tencentLogs;
+    let readFileSyncStub;
+    let homedirStub;
 
     beforeEach(() => {
         serverless = new Serverless();
@@ -17,8 +20,22 @@ describe('TencentLogs', () => {
             region: 'ap-guangzhou',
             function: 'test'
         };
+
+        readFileSyncStub = sinon.stub(fs, 'readFileSync')
+            .returns(`[default]
+tencent_secret_key = PYR4a0HSZ******eVvHRe
+tencent_secret_id = AKIDoM*****mxsfOirI
+tencent_appid = 12561*****`);
+        homedirStub = sinon.stub(os, 'homedir')
+            .returns('/root');
+
         serverless.setProvider('tencent', new TencentProvider(serverless, options));
         tencentLogs = new TencentLogs(serverless, options);
+    });
+
+    afterEach(() => {
+        fs.readFileSync.restore();
+        os.homedir.restore();
     });
 
     describe('#constructor()', () => {
