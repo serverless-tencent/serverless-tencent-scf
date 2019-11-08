@@ -3,7 +3,7 @@
 
 Simply put, events are the things that trigger your functions to run.
 
-If you are using Tencent as your provider, all `events` in the service are anything in Tencent Cloud that can trigger an Serverless Cloud Function, like an COS bucket upload, an Cloud Kafka topic, and HTTP endpoints created via API Gateway.
+If you are using Tencent as your provider, all `events` in the service are anything in Tencent Cloud that can trigger an Serverless Cloud Function, like an COS bucket upload, a Cloud Kafka topic, and HTTP endpoints created via API Gateway.
 
 [View the events section for a list of supported events](./events)
 
