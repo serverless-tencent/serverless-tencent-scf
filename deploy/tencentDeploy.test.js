@@ -1,15 +1,16 @@
 'use strict';
+
 const fs              = require('fs');
 const os              = require('os');
 const sinon           = require('sinon');
 const TencentProvider = require('../provider/tencentProvider');
 const Serverless      = require('../test/serverless');
-const TencentInfo     = require('./tencentInfo');
+const TencentDeploy   = require('./tencentDeploy');
 
-describe('TencentInfo', () => {
+describe('TencentDeploy', () => {
     let serverless;
     let options;
-    let tencentInfo;
+    let tencentDeploy;
     let readFileSyncStub;
     let homedirStub;
 
@@ -30,9 +31,9 @@ tencent_appid = 12561*****`);
             .returns('/root');
 
         serverless.setProvider('tencent', new TencentProvider(serverless, options));
-        tencentInfo = new TencentInfo(serverless, options);
+        tencentDeploy = new TencentDeploy(serverless, options);
     });
-    
+
     afterEach(() => {
         fs.readFileSync.restore();
         os.homedir.restore();
@@ -40,46 +41,46 @@ tencent_appid = 12561*****`);
 
     describe('#constructor()', () => {
         it('should set the serverless instance', () => {
-            tencentInfo.serverless.should.equal(serverless);
+            tencentDeploy.serverless.should.equal(serverless);
         });
 
         it('should set options if provided', () => {
-            tencentInfo.options.should.equal(options);
+            tencentDeploy.options.should.equal(options);
         });
 
         it('should make the provider accessible', () => {
-            tencentInfo.provider.should.to.be.an.instanceof(TencentProvider);
+            tencentDeploy.provider.should.to.be.an.instanceof(TencentProvider);
         });
 
         describe('hooks', () => {
             let validateStub;
             let setDefaultsStub;
-            let tencentInfoStub;
+            let tencentDeployStub;
 
             beforeEach(() => {
-                validateStub = sinon.stub(tencentInfo, 'validate')
+                validateStub = sinon.stub(tencentDeploy, 'validate')
                     .returns(Promise.resolve());
-                setDefaultsStub = sinon.stub(tencentInfo, 'setDefaults')
+                setDefaultsStub = sinon.stub(tencentDeploy, 'setDefaults')
                     .returns(Promise.resolve());
-                tencentInfoStub = sinon.stub(tencentInfo, 'info')
+                tencentDeployStub = sinon.stub(tencentDeploy, 'deploy')
                     .returns(Promise.resolve());
             });
 
             afterEach(() => {
-                tencentInfo.validate.restore();
-                tencentInfo.setDefaults.restore();
-                tencentInfo.info.restore();
+                tencentDeploy.validate.restore();
+                tencentDeploy.setDefaults.restore();
+                tencentDeploy.deploy.restore();
             });
 
-            it('should run "before:info:info" promise chain', () => tencentInfo
-                .hooks['before:info:info']().then(() => {
+            it('should run "before:deploy:deploy" promise chain', () => tencentDeploy
+                .hooks['before:deploy:deploy']().then(() => {
                     validateStub.calledOnce.should.equal(true);
                     setDefaultsStub.calledAfter(validateStub).should.equal(true);
                 }));
 
-            it('should run "info:info" promise chain', () => tencentInfo
-                .hooks['info:info']().then(() => {
-                    tencentInfoStub.calledOnce.should.equal(true);
+            it('should run "deploy:deploy" promise chain', () => tencentDeploy
+                .hooks['deploy:deploy']().then(() => {
+                    tencentDeployStub.calledOnce.should.equal(true);
                 }));
         });
     });

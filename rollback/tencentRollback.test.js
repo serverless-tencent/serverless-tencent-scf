@@ -1,15 +1,16 @@
 'use strict';
+
 const fs              = require('fs');
 const os              = require('os');
 const sinon           = require('sinon');
 const TencentProvider = require('../provider/tencentProvider');
 const Serverless      = require('../test/serverless');
-const TencentInfo     = require('./tencentInfo');
+const TencentRollback   = require('./tencentRollback');
 
-describe('TencentInfo', () => {
+describe('TencentRollback', () => {
     let serverless;
     let options;
-    let tencentInfo;
+    let tencentRollback;
     let readFileSyncStub;
     let homedirStub;
 
@@ -30,9 +31,9 @@ tencent_appid = 12561*****`);
             .returns('/root');
 
         serverless.setProvider('tencent', new TencentProvider(serverless, options));
-        tencentInfo = new TencentInfo(serverless, options);
+        tencentRollback = new TencentRollback(serverless, options);
     });
-    
+
     afterEach(() => {
         fs.readFileSync.restore();
         os.homedir.restore();
@@ -40,46 +41,46 @@ tencent_appid = 12561*****`);
 
     describe('#constructor()', () => {
         it('should set the serverless instance', () => {
-            tencentInfo.serverless.should.equal(serverless);
+            tencentRollback.serverless.should.equal(serverless);
         });
 
         it('should set options if provided', () => {
-            tencentInfo.options.should.equal(options);
+            tencentRollback.options.should.equal(options);
         });
 
         it('should make the provider accessible', () => {
-            tencentInfo.provider.should.to.be.an.instanceof(TencentProvider);
+            tencentRollback.provider.should.to.be.an.instanceof(TencentProvider);
         });
 
         describe('hooks', () => {
             let validateStub;
             let setDefaultsStub;
-            let tencentInfoStub;
+            let tencentRollbackStub;
 
             beforeEach(() => {
-                validateStub = sinon.stub(tencentInfo, 'validate')
+                validateStub = sinon.stub(tencentRollback, 'validate')
                     .returns(Promise.resolve());
-                setDefaultsStub = sinon.stub(tencentInfo, 'setDefaults')
+                setDefaultsStub = sinon.stub(tencentRollback, 'setDefaults')
                     .returns(Promise.resolve());
-                tencentInfoStub = sinon.stub(tencentInfo, 'info')
+                tencentRollbackStub = sinon.stub(tencentRollback, 'rollback')
                     .returns(Promise.resolve());
             });
 
             afterEach(() => {
-                tencentInfo.validate.restore();
-                tencentInfo.setDefaults.restore();
-                tencentInfo.info.restore();
+                tencentRollback.validate.restore();
+                tencentRollback.setDefaults.restore();
+                tencentRollback.rollback.restore();
             });
 
-            it('should run "before:info:info" promise chain', () => tencentInfo
-                .hooks['before:info:info']().then(() => {
+            it('should run "before:rollback:rollback" promise chain', () => tencentRollback
+                .hooks['before:rollback:rollback']().then(() => {
                     validateStub.calledOnce.should.equal(true);
                     setDefaultsStub.calledAfter(validateStub).should.equal(true);
                 }));
 
-            it('should run "info:info" promise chain', () => tencentInfo
-                .hooks['info:info']().then(() => {
-                    tencentInfoStub.calledOnce.should.equal(true);
+            it('should run "rollback:rollback" promise chain', () => tencentRollback
+                .hooks['rollback:rollback']().then(() => {
+                    tencentRollbackStub.calledOnce.should.equal(true);
                 }));
         });
     });

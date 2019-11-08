@@ -23,7 +23,8 @@ class TencentDeployList {
             'before:deploy:list:log': () => BbPromise.bind(this)
                 .then(this.validate)
                 .then(this.setDefaults),
-            'deploy:list:log': this.serviceList.bind(this),
+            'deploy:list:log': () => BbPromise.bind(this)
+                .then(this.serviceList),
         };
     }
 
