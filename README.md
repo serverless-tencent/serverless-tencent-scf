@@ -77,7 +77,7 @@ $ npm install
 
 ### Set up the credentials
 
-[Configure your Tencent Cloud account](./credentials.md) to work with the Serverless Framework.
+[Configure your Tencent Cloud account](./docs/en/credentials.md) to work with the Serverless Framework.
 
 ### Set up an endpoint
 
@@ -114,7 +114,7 @@ Use this command to deploy your service for the first time and after you make ch
 ```bash
 serverless deploy
 ```
-More information in [deploy command](../cli-reference/deploy.md)
+More information in [deploy command](./docs/en/deploy.md)
 
 ### Test your Service
 
@@ -131,7 +131,7 @@ Invokes a Function and returns logs.
 ```bash
 serverless invoke -f hello
 ```
-More information in [invoke command](../cli-reference/invoke.md)
+More information in [invoke command](./docs/en/invoke.md)
 
 ### Fetch the Function Logs
 
