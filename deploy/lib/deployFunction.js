@@ -85,8 +85,8 @@ class DeployFunction extends AbstractHandler {
 			const vpc = funcObject.Properties.VpcConfig;
 
 			createFuncRequest.VpcConfig = {
-				VpcId: vpc.vpcId,
-				SubnetId: vpc.subnetId
+				VpcId: vpc.VpcId,
+				SubnetId: vpc.SubnetId
 			};
 		}
 		const req = new models.CreateFunctionRequest();
