@@ -107,6 +107,8 @@ functions:
              httpMethod: ANY
 ```
 
+* [Click here you could get `Serverless.yml Reference`](./docs/en/yaml.md)
+
 ### Deploy the Service
 
 Use this command to deploy your service for the first time and after you make changes to your Functions, Events or Resources in `serverless.yml` and want to deploy all changes within your Service at the same time.
