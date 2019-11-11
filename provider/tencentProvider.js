@@ -5,14 +5,65 @@ const fs = require('fs');
 const os = require('os');
 const ini = require('ini');
 const _ = require('lodash');
-
+const util = require('util')
+const tencentcloud = require('tencentcloud-sdk-nodejs')
+const ClientProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/client_profile.js')
+const HttpProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/http_profile.js')
+const AbstractModel = require('tencentcloud-sdk-nodejs/tencentcloud/common/abstract_model')
+const AbstractClient = require('tencentcloud-sdk-nodejs/tencentcloud/common/abstract_client')
 const constants = {
 	providerName: 'tencent',
 };
 
+class GetUserAppIdResponse extends AbstractModel {
+	constructor() {
+		super()
+
+		this.RequestId = null
+	}
+
+	deserialize(params) {
+		if (!params) {
+			return
+		}
+		this.AppId = 'RequestId' in params ? params.AppId : null
+		this.RequestId = 'RequestId' in params ? params.RequestId : null
+	}
+}
+
+class AppidClient extends AbstractClient {
+	constructor(credential, region, profile) {
+		super('cam.tencentcloudapi.com', '2019-01-16', credential, region, profile)
+	}
+
+	GetUserAppId(req, cb) {
+		const resp = new GetUserAppIdResponse()
+		this.request('GetUserAppId', req, resp, cb)
+	}
+}
+
 class TencentProvider {
 	static getProviderName() {
 		return constants.providerName;
+	}
+
+	getAppid(credentials) {
+		const secret_id = credentials.SecretId
+		const secret_key = credentials.SecretKey
+		const cred = new tencentcloud.common.Credential(secret_id, secret_key)
+		const httpProfile = new HttpProfile()
+		httpProfile.reqTimeout = 30
+		const clientProfile = new ClientProfile('HmacSHA256', httpProfile)
+		const cam = new AppidClient(cred, 'ap-guangzhou', clientProfile)
+		const req = new GetUserAppIdResponse()
+		const body = {}
+		req.from_json_string(JSON.stringify(body))
+		const handler = util.promisify(cam.GetUserAppId.bind(cam))
+		try {
+			return handler(req)
+		} catch (e) {
+			throw 'Get Appid failed! '
+		}
 	}
 
 	constructor(serverless, options) {
@@ -89,7 +140,7 @@ class TencentProvider {
 		return (vpcId && subnetId) ? {'VpcId': vpcId, 'SubnetId': subnetId} : null
 	}
 
-	getCredentials() {
+	async getCredentials() {
 
 		if (this.options.credentials) {
 			return
@@ -104,7 +155,6 @@ class TencentProvider {
 			// TODO(dfounderliu) support profiles other than [default]
 			this.options.credentials = ini.parse(keyFileContent).default;
 			[
-				'tencent_appid',
 				'tencent_secret_id',
 				'tencent_secret_key'
 			].forEach((field) => {
@@ -112,6 +162,13 @@ class TencentProvider {
 					throw new Error(`Credentials in ${credentials} does not contain ${field}`);
 				}
 			});
+
+			// From cam to getting appid
+			const appid = await this.getAppid({
+				SecretId: this.options.credentials.tencent_secret_id,
+				SecretKey: this.options.credentials.tencent_secret_key
+			})
+			this.options.credentials.tencent_appid = appid.AppId
 			return
 		}
 	}

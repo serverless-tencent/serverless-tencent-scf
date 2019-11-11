@@ -24,7 +24,6 @@ You need to create credentials Serverless can use to create resources in your Pr
 4. Create a file named `credentials` containing the credentials that you have collected.
 ```ini
 [default]
-tencent_appid = 1251000000
 tencent_secret_id = AKIDteBxxxxxxxxxxnZfk
 tencent_secret_key = AKID2qsxxxxxxxxxxxxxtTo
 ```
