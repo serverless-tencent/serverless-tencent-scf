@@ -81,12 +81,14 @@ class DeployFunction extends AbstractHandler {
 			}
 		}
 
+
+
 		if (!_.isEmpty(funcObject.Properties.VpcConfig)) {
 			const vpc = funcObject.Properties.VpcConfig;
 
 			createFuncRequest.VpcConfig = {
-				VpcId: vpc.vpcId,
-				SubnetId: vpc.subnetId
+				VpcId: vpc.VpcId,
+				SubnetId: vpc.SubnetId
 			};
 		}
 		const req = new models.CreateFunctionRequest();
@@ -151,8 +153,8 @@ class DeployFunction extends AbstractHandler {
 		if (!_.isEmpty(funcObject.Properties.VpcConfig)) {
 			const vpc = funcObject.Properties.VpcConfig;
 			configArgs.VpcConfig = {
-				VpcId: vpc.vpcId,
-				SubnetId: vpc.subnetId
+				VpcId: vpc.VpcId,
+				SubnetId: vpc.SubnetId
 			};
 		}
 
