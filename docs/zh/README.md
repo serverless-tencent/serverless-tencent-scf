@@ -74,7 +74,7 @@ plugins:
   - serverless-tencent-scf
 
 functions:
-  function_one:
+  hello:   # function name
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
