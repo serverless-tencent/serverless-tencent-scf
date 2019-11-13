@@ -10,6 +10,7 @@ const TencentRollback = require('./rollback/tencentRollback');
 const TencentInvoke = require('./invoke/tencentInvoke');
 const TencentInfo = require('./info/tencentInfo');
 const TencentLogs = require('./logs/tencentLogs');
+const TencentLogin = require('./login/tencentLogin');
 const TencentDeployListFunctions = require('./deploy/tencentDeployListFunctions')
 
 class TencentIndex {
@@ -28,6 +29,7 @@ class TencentIndex {
         this.serverless.pluginManager.addPlugin(TencentInvoke);
         this.serverless.pluginManager.addPlugin(TencentInfo);
         this.serverless.pluginManager.addPlugin(TencentLogs);
+        this.serverless.pluginManager.addPlugin(TencentLogin);
     }
 }
 

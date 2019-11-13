@@ -6,6 +6,11 @@ const BbPromise = require('bluebird');
 const crypto    = require('crypto');
 
 module.exports = {
+    sleep(ms){
+        return new Promise((resolve)=>{
+            setTimeout(resolve, ms);
+        })
+    },
     setDefaults() {
         this.options.stage = this.provider.getStage();
         this.options.region = this.provider.getRegion();
