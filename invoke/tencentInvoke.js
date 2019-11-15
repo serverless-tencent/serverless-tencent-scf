@@ -32,7 +32,8 @@ class TencentInvoke {
 	async invoke() {
 		try {
 			const options = {
-				region: this.options.region
+				region: this.options.region,
+				token: this.options.credentials.tencent_token || null
 			};
 			const invokeHandler = new Invoke(this.options.credentials.tencent_appid,
 				this.options.credentials.tencent_secret_id,
