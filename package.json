@@ -1,6 +1,6 @@
 {
   "name": "serverless-tencent-scf",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Tencent Cloud Functions.",
   "main": "index.js",
   "author": "serverless.com",
@@ -9,7 +9,7 @@
     "git": "https://github.com/serverless-tencent/serverless-tencent-scf"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --cache",
     "coverage": "jest --coverage"
   },
@@ -50,6 +50,10 @@
     "eslint-config-airbnb-base": "^11.3.2",
     "eslint-plugin-import": "^2.18.1",
     "jest": "^24.8.0",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "babel-eslint": "9.0.0",
+    "eslint-config-prettier": "^3.6.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "prettier": "^1.18.2"
   }
 }

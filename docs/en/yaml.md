@@ -22,6 +22,7 @@ provider: # provider information
   credentials: ~/credentials
 
 # you can overwrite defaults here
+#  enableRoleAuth: true
 #  stage: dev
 #  cosBucket: DEFAULT
 #  role: QCS_SCFExcuteRole
