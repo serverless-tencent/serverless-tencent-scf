@@ -31,10 +31,13 @@ class TencentRemove {
 
     async remove() {
         try {
-            const region = this.options.region; 
+            const options = {
+                region: this.options.region,
+                token: this.options.credentials.tencent_token || null
+            }
             const handler = new RemoveFunction(this.options.credentials.tencent_appid, 
                     this.options.credentials.tencent_secret_id, 
-                    this.options.credentials.tencent_secret_key, {region});
+                    this.options.credentials.tencent_secret_key, options);
 
             const service = this.provider.getServiceResource();
             const functions = Object.keys(service.Resources.default).filter((key)=>{

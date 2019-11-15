@@ -34,17 +34,19 @@ class TencentDeploy {
 
 	async deploy() {
 
-
+		const options = {
+            region: this.options.region,
+            token: this.options.credentials.tencent_token || null
+        }
 		const services = this.provider.getServiceResource();
-		const region = this.options.region;
 
 		const func = new DeployFunction(this.options.credentials.tencent_appid,
 			this.options.credentials.tencent_secret_id,
-			this.options.credentials.tencent_secret_key, {region});
+			this.options.credentials.tencent_secret_key, options);
 
 		const trigger = new DeployTrigger(this.options.credentials.tencent_appid,
 			this.options.credentials.tencent_secret_id,
-			this.options.credentials.tencent_secret_key, {region});
+			this.options.credentials.tencent_secret_key, options);
 
 		// upload file to cos
 		let result;
@@ -94,7 +96,7 @@ class TencentDeploy {
 		let outputInformation = `Service Information\nservice: ${this.serverless.service.service} \nstage: ${this.provider.options.stage} \nregion: ${this.provider.options.region} \nstack: ${this.serverless.service.service}-${this.provider.options.stage}\n`
 		const MetricsHandler = new MetricsFunction(this.options.credentials.tencent_appid,
 			this.options.credentials.tencent_secret_id,
-			this.options.credentials.tencent_secret_key, {region});
+			this.options.credentials.tencent_secret_key, options);
 		const functionList = await MetricsHandler.functionList(this.serverless.service.service, this.options.stage);
 		const functionListData = functionList.Functions || [];
 		outputInformation = outputInformation + 'resources: ' + functionListData.length + "\nfunctions: "

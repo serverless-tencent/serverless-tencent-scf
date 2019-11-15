@@ -29,10 +29,13 @@ class TencentDeployList {
     }
 
     async serviceList() {
-        const region = this.options.region;
+        const options = {
+            region: this.options.region,
+            token: this.options.credentials.tencent_token || null
+        }
         const Handler = new RollbackService(this.options.credentials.tencent_appid,
             this.options.credentials.tencent_secret_id,
-            this.options.credentials.tencent_secret_key, {region});
+            this.options.credentials.tencent_secret_key, options);
         const fileKeyPrefix = this.serverless.service.service + "-" + this.options.stage;
         const cosBucket = this.provider.getDeployCosBucket();
         const functionList = await Handler.historyList(fileKeyPrefix, cosBucket);

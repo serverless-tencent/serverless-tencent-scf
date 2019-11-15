@@ -54,10 +54,13 @@ class TencentLogs {
 
     async logs() {
         try {
-            const region = this.options.region;
+            const options = {
+                region: this.options.region,
+                token: this.options.credentials.tencent_token || null
+            }
             const handler = new LogsFunction(this.options.credentials.tencent_appid,
                 this.options.credentials.tencent_secret_id,
-                this.options.credentials.tencent_secret_key, {region});
+                this.options.credentials.tencent_secret_key, options);
             const timeFormat = 'yyyy-MM-dd hh:mm:ss';
             this.serverless.cli.log(`Get function logs...`);
             const functionName = this.provider.getFunctionName(this.options.function);

@@ -34,7 +34,12 @@ class AbstractHandler {
 	}
 
 	static getClientInfo(secret_id, secret_key, options) {
-		const cred = new Credential(secret_id, secret_key);
+		let cred;
+		console.log(options)
+		if (options.token)
+			cred = new Credential(secret_id, secret_key, options.token);
+		else
+			cred = new Credential(secret_id, secret_key);
 		const httpProfile = new HttpProfile();
 		httpProfile.reqTimeout = 30;
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile);

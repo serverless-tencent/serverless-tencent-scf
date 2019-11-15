@@ -33,13 +33,17 @@ class TencentDeployListFunction {
 
     async functionList() {
         try {
+            const options = {
+                region: this.options.region,
+                token: this.options.credentials.tencent_token || null
+            }
             const region = this.options.region;
             const infoHandler = new InfoFunction(this.options.credentials.tencent_appid,
                 this.options.credentials.tencent_secret_id,
-                this.options.credentials.tencent_secret_key, {region});
+                this.options.credentials.tencent_secret_key, options);
             const deployHandler = new ListFunctions(this.options.credentials.tencent_appid,
                 this.options.credentials.tencent_secret_id,
-                this.options.credentials.tencent_secret_key, {region});
+                this.options.credentials.tencent_secret_key, options);
             const functionList = await infoHandler.info(this.serverless.service.service, this.options.stage);
             const totalData = functionList.Functions || [];
             if (totalData.length > 0) {

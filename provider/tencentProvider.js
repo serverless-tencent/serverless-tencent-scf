@@ -50,7 +50,12 @@ class TencentProvider {
 	getAppid(credentials) {
 		const secret_id = credentials.SecretId
 		const secret_key = credentials.SecretKey
-		const cred = new tencentcloud.common.Credential(secret_id, secret_key)
+
+		let cred; 
+		if (credentials.Token)
+			cred = new tencentcloud.common.Credential(secret_id, secret_key, credentials.Token)
+		else
+			cred = new tencentcloud.common.Credential(secret_id, secret_key)
 		const httpProfile = new HttpProfile()
 		httpProfile.reqTimeout = 30
 		const clientProfile = new ClientProfile('HmacSHA256', httpProfile)
@@ -69,7 +74,8 @@ class TencentProvider {
 	constructor(serverless, options) {
 		this.options = options;
 		this.serverless = serverless;
-		this.getCredentials(this.serverless, this.options);
+		if (serverless.pluginManager.cliCommands.indexOf('login') == -1) 
+			this.getCredentials(this.serverless, this.options);
 		this.serverless.setProvider(constants.providerName, this);
 		this.provider = this;
 		// this.getServiceResource();
@@ -166,7 +172,8 @@ class TencentProvider {
 			// From cam to getting appid
 			const appid = await this.getAppid({
 				SecretId: this.options.credentials.tencent_secret_id,
-				SecretKey: this.options.credentials.tencent_secret_key
+				SecretKey: this.options.credentials.tencent_secret_key,
+				Token: this.options.credentials.tencent_token || null,
 			})
 			this.options.credentials.tencent_appid = appid.AppId
 			return

@@ -31,10 +31,14 @@ class TencentInfo {
 
     async info() {
         try {
+            const options = {
+                region: this.options.region,
+                token: this.options.credentials.tencent_token || null
+            };
             const region = this.options.region;
             const handler = new InfoFunction(this.options.credentials.tencent_appid,
                 this.options.credentials.tencent_secret_id,
-                this.options.credentials.tencent_secret_key, {region});
+                this.options.credentials.tencent_secret_key, options);
 
             var output = `\n\nService Information\n` +
                 `service: ${this.serverless.service.service}\n` +
