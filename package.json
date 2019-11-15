@@ -41,9 +41,11 @@
     "lodash": "^4.17.15",
     "mocha": "^6.2.2",
     "open": "^7.0.0",
+    "qrcode-terminal": "^0.12.0",
     "request": "^2.88.0",
     "tencentcloud-sdk-nodejs": "^3.0.87",
-    "universal-analytics": "^0.4.20"
+    "universal-analytics": "^0.4.20",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "coveralls": "^3.0.5",
