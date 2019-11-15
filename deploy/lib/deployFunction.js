@@ -61,9 +61,7 @@ class DeployFunction extends AbstractHandler {
             }
           }
           pagePolicyCount = pagePolicList.List.length
-        } catch (e) {
-          console.log(e)
-        }
+        } catch (e) {}
         await utils.sleep(400)
       }
 
