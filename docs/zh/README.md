@@ -74,7 +74,7 @@ plugins:
   - serverless-tencent-scf
 
 functions:
-  hello:   # function name
+  function_one:   # function name
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
@@ -105,7 +105,7 @@ $ curl -X POST https://service-xxxx-1300000000.ap-guangzhou.apigateway.myqcloud.
 通过以下命令云端调用函数并且获得日志信息的返回。
 
 ```bash
-serverless invoke -f hello
+serverless invoke -f function_one
 ```
 更多部署详情参考 [云端调用](./云端调用.md)。
 
@@ -113,7 +113,7 @@ serverless invoke -f hello
 
 单独开启一个命令行，通过如下命令，实时获取函数`hello`的云端调用日志信息。
 ```bash
-serverless logs -f hello -t
+serverless logs -f function_one -t
 ```
 
 #### 移除服务
