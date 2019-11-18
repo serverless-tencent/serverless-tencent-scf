@@ -9,18 +9,14 @@ const os        = require('os');
 const fs        = require('fs');
 const ini       = require('ini');
 const uuidv4    = require('uuid/v4');
-const QRCode    = require('qrcode-terminal');
+const QRCode    = require('qrcode');
 const querystring     = require('querystring');
 const utils           = require('../shared/utils');
 const tencentProvider = require('../provider/tencentProvider');
 const HttpService     = require('../shared/httpService');
 
 const cosBaseUrl = 'https://sls-token-1256141942.cos.ap-guangzhou.myqcloud.com'
-const appId = '100005789219';
-const redirectUrl = 'http://scfdev.tencentserverless.com/release/authserver/success';
-const authorizeUrl = 'https://cloud.tencent.com/open/authorize?scope=login';
-// const authUrl = util.format('https://cloud.tencent.com/open/authorize?scope=login&app_id=%s&redirect_url=%s', 
-//                             appId, redirectUrl);
+const apiShortUrl = 'http://scfdev.tencentserverless.com/release/authserver/url'
 
 const config = {};
 let quit = false;
@@ -96,23 +92,53 @@ class TencentLogin {
         })
     }
 
+
+    async getShortUrl(uuid) {
+        return new Promise((done, reject)=> {
+            const shortUrl = util.format('%s?os=%s&uuid=%s', apiShortUrl, os.type(), uuid);
+            request(shortUrl, (error, response, body) => {
+                if (error) {
+                    done(false);
+                    return;
+                }
+
+                if (response.statusCode != 200) {
+                    done(false);
+                    return;
+                }
+                try {
+                    done(JSON.parse(body))
+                } catch (e) {
+                    done(false);
+                    return;
+                }
+            })
+        })
+    }
+
     async login() {
         try {
             let credentials = this.serverless.service.provider.credentials || "~/credentials";
-            if (!_.isEmpty(this.options.credentials)) {
-                this.serverless.cli.log('Login credentials already exists');
+            // if (!_.isEmpty(this.options.credentials)) {
+            //     this.serverless.cli.log('Login credentials already exists');
+            //     process.exit(0);
+            // }
+            const uuid = uuidv4();
+
+            const shortUrl = await this.getShortUrl(uuid);
+            if (!shortUrl) {
+                this.serverless.cli.log('Get authorize url failed');
                 process.exit(0);
             }
-            const uuid = uuidv4();
-            const callbackUrl = util.format('%s?uuid=%s&os=%s', redirectUrl, uuid, os.type());
-            const authUrl = util.format('%s&app_id=%s&redirect_url=%s', authorizeUrl,
-                            appId, querystring.escape(callbackUrl));
-            console.log(authUrl);
-            QRCode.generate(authUrl, {small: true});
+            // const callbackUrl = util.format('%s?uuid=%s&os=%s', redirectUrl, uuid, os.type());
+            // const authUrl = util.format('%s&app_id=%s&redirect_url=%s', authorizeUrl,
+            //                 appId, querystring.escape(callbackUrl));
+            // console.log(authUrl);
+            // QRCode.generate(shortUrl.short_url, {small: true});
 
-            // QRCode.toString(authUrl, {type: 'terminal'}, function (err, url) {
-            //     console.log(url)
-            // })
+            QRCode.toString(shortUrl.short_url, {type: 'terminal'}, function (err, url) {
+                console.log(url)
+            })
 
             this.serverless.cli.log('Please scan qr code login from wechat');
 
@@ -149,7 +175,7 @@ class TencentLogin {
             const iniBody = ini.stringify(config, { section: 'default' });
             fs.writeFileSync(credentials, iniBody);
             this.serverless.cli.log('Login successful for TencentCloud');
-            
+
             // setTimeout(async ()=>{
             //     await open(authUrl, {wait: true});
             //     quit = true;
