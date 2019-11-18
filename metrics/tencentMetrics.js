@@ -57,6 +57,17 @@ class TencentInfo {
   }
 
   async metrics() {
+    if (!this.options.secret_id) {
+      const provider = new tencentProvider(this.serverless, this.options)
+      const tencentTemp = await provider.getTempKey()
+      this.options.credentials = {
+        tencent_secret_id: tencentTemp.tencent_secret_id,
+        tencent_secret_key: tencentTemp.tencent_secret_key,
+        tencent_appid: tencentTemp.tencent_appid
+      }
+      this.options.token = tencentTemp.token
+      this.options.timestamp = tencentTemp.timestamp
+    }
     try {
       const Handler = new MetricsFunction(this.options, this.serverless)
       const functionList = await Handler.functionList(
@@ -110,7 +121,6 @@ class TencentInfo {
             Duration: duration ? duration : 0
           }
         }
-        console.log(output)
         let serviceInvocation = 0
         let serviceError = 0
         let serviceOutFlow = 0

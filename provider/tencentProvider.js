@@ -4,6 +4,7 @@ const os = require('os')
 const ini = require('ini')
 const _ = require('lodash')
 const util = require('util')
+const TencentLogin = require('tencent-login')
 const tencentcloud = require('tencentcloud-sdk-nodejs')
 const ClientProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/client_profile.js')
 const HttpProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/http_profile.js')
@@ -41,6 +42,14 @@ class AppidClient extends AbstractClient {
 }
 
 class TencentProvider {
+  constructor(serverless, options) {
+    this.options = options
+    this.serverless = serverless
+    this.getCredentials(this.serverless, this.options)
+    this.serverless.setProvider(constants.providerName, this)
+    this.provider = this
+  }
+
   static getProviderName() {
     return constants.providerName
   }
@@ -48,7 +57,9 @@ class TencentProvider {
   getAppid(credentials) {
     const secret_id = credentials.SecretId
     const secret_key = credentials.SecretKey
-    const cred = new tencentcloud.common.Credential(secret_id, secret_key)
+    const cred = credentials.token
+      ? new tencentcloud.common.Credential(secret_id, secret_key, credentials.token)
+      : new tencentcloud.common.Credential(secret_id, secret_key)
     const httpProfile = new HttpProfile()
     httpProfile.reqTimeout = 30
     const clientProfile = new ClientProfile('HmacSHA256', httpProfile)
@@ -62,14 +73,6 @@ class TencentProvider {
     } catch (e) {
       throw 'Get Appid failed! '
     }
-  }
-
-  constructor(serverless, options) {
-    this.options = options
-    this.serverless = serverless
-    this.getCredentials(this.serverless, this.options)
-    this.serverless.setProvider(constants.providerName, this)
-    this.provider = this
   }
 
   jsonObjectIsEmpty(jsonObject) {
@@ -118,6 +121,52 @@ class TencentProvider {
     )
   }
 
+  async doLogin() {
+    const login = new TencentLogin()
+    const tencent_credentials = await login.login()
+    if (tencent_credentials) {
+      tencent_credentials.timestamp = Date.now() / 1000
+      const tencent_credentials_json = JSON.stringify(tencent_credentials)
+      try {
+        const tencent = {
+          tencent_secret_id: tencent_credentials.tencent_secret_id,
+          tencent_secret_key: tencent_credentials.tencent_secret_key,
+          tencent_appid: tencent_credentials.tencent_appid,
+          token: tencent_credentials.tencent_token,
+          timestamp: tencent_credentials.timestamp
+        }
+        await fs.writeFileSync('./.serverless/.env', tencent_credentials_json)
+        return tencent
+      } catch (e) {
+        throw 'Error getting temporary key: ' + e
+      }
+    }
+  }
+
+  async getTempKey() {
+    const that = this
+    try {
+      const data = await fs.readFileSync('./.serverless/.env', 'utf8')
+      try {
+        const tencent = {}
+        const tencent_credentials_read = JSON.parse(data)
+        if (Date.now() / 1000 - tencent_credentials_read.timestamp <= 7000) {
+          tencent.tencent_secret_id = tencent_credentials_read.tencent_secret_id
+          tencent.tencent_secret_key = tencent_credentials_read.tencent_secret_key
+          tencent.tencent_appid = tencent_credentials_read.tencent_appid
+          tencent.token = tencent_credentials_read.tencent_token
+          tencent.timestamp = tencent_credentials_read.timestamp
+          return tencent
+        }
+        return await that.doLogin()
+      } catch (e) {
+        return await that.doLogin()
+      }
+    } catch (e) {
+      return await that.doLogin()
+    }
+  }
+
   getServiceFileName(timeData) {
     return this.serverless.service.service + '-' + this.getStage() + '-' + timeData
   }
@@ -149,30 +198,33 @@ class TencentProvider {
   }
 
   async getCredentials() {
-    if (this.options.credentials) {
-      return
-    }
-    let credentials = this.serverless.service.provider.credentials || '~/credentials'
-    const credParts = credentials.split(path.sep)
-    if (credParts[0] === '~') {
-      credParts[0] = os.homedir()
-      credentials = credParts.reduce((memo, part) => path.join(memo, part), '')
-    }
-    const keyFileContent = fs.readFileSync(credentials, 'utf-8').toString()
-    // TODO(dfounderliu) support profiles other than [default]
-    this.options.credentials = ini.parse(keyFileContent).default
-    ;['tencent_secret_id', 'tencent_secret_key'].forEach((field) => {
-      if (!this.options.credentials[field]) {
-        throw new Error(`Credentials in ${credentials} does not contain ${field}`)
+    try {
+      if (this.options.credentials) {
+        return
       }
-    })
-
-    // From cam to getting appid
-    const appid = await this.getAppid({
-      SecretId: this.options.credentials.tencent_secret_id,
-      SecretKey: this.options.credentials.tencent_secret_key
-    })
-    this.options.credentials.tencent_appid = appid.AppId
+      let credentials = this.serverless.service.provider.credentials || '~/credentials'
+      const credParts = credentials.split(path.sep)
+      if (credParts[0] === '~') {
+        credParts[0] = os.homedir()
+        credentials = credParts.reduce((memo, part) => path.join(memo, part), '')
+      }
+      const keyFileContent = fs.readFileSync(credentials, 'utf-8').toString()
+      // TODO(dfounderliu) support profiles other than [default]
+      this.options.credentials = ini.parse(keyFileContent).default
+      ;['tencent_secret_id', 'tencent_secret_key'].forEach((field) => {
+        if (!this.options.credentials[field]) {
+          throw new Error(`Credentials in ${credentials} does not contain ${field}`)
+        }
+      })
+      // From cam to getting appid
+      if (!this.options.credentials.tencent_appid) {
+        const appid = await this.getAppid({
+          SecretId: this.options.credentials.tencent_secret_id,
+          SecretKey: this.options.credentials.tencent_secret_key
+        })
+        this.options.credentials.tencent_appid = appid.AppId
+      }
+    } catch (e) {}
     return
   }
 

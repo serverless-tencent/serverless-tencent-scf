@@ -24,6 +24,17 @@ class TencentInfo {
   }
 
   async info() {
+    if (!this.options.secret_id) {
+      const provider = new tencentProvider(this.serverless, this.options)
+      const tencentTemp = await provider.getTempKey()
+      this.options.credentials = {
+        tencent_secret_id: tencentTemp.tencent_secret_id,
+        tencent_secret_key: tencentTemp.tencent_secret_key,
+        tencent_appid: tencentTemp.tencent_appid
+      }
+      this.options.token = tencentTemp.token
+      this.options.timestamp = tencentTemp.timestamp
+    }
     try {
       const region = this.options.region
       const handler = new InfoFunction(this.options, this.serverless)

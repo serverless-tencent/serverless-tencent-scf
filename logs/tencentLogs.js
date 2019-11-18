@@ -49,6 +49,17 @@ class TencentLogs {
   }
 
   async logs() {
+    if (!this.options.secret_id) {
+      const provider = new tencentProvider(this.serverless, this.options)
+      const tencentTemp = await provider.getTempKey()
+      this.options.credentials = {
+        tencent_secret_id: tencentTemp.tencent_secret_id,
+        tencent_secret_key: tencentTemp.tencent_secret_key,
+        tencent_appid: tencentTemp.tencent_appid
+      }
+      this.options.token = tencentTemp.token
+      this.options.timestamp = tencentTemp.timestamp
+    }
     try {
       const handler = new LogsFunction(this.options, this.serverless)
       const timeFormat = 'yyyy-MM-dd hh:mm:ss'

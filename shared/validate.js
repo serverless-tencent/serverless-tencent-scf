@@ -34,7 +34,7 @@ module.exports = {
   },
 
   validateHandlers() {
-    const functions = this.serverless.service.functions
+    const { functions } = this.serverless.service
     _.forEach(functions, (funcObject, funcKey) => {
       if (!/^[a-zA-Z_][a-zA-Z0-9\-_]*$/.test(funcKey)) {
         throw new Error(
@@ -72,7 +72,7 @@ module.exports = {
   },
 
   validateEventsProperty() {
-    const functions = this.serverless.service.functions
+    const { functions } = this.serverless.service
     _.forEach(functions, (funcObject, funcKey) => {
       const supportedEvents = ['apigw', 'cos', 'cmq', 'timer', 'ckafka']
 

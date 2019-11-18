@@ -26,8 +26,19 @@ class TencentDeploy {
   }
 
   async deploy() {
-    const services = this.provider.getServiceResource()
+    if (!this.options.secret_id) {
+      const provider = new tencentProvider(this.serverless, this.options)
+      const tencentTemp = await provider.getTempKey()
+      this.options.credentials = {
+        tencent_secret_id: tencentTemp.tencent_secret_id,
+        tencent_secret_key: tencentTemp.tencent_secret_key,
+        tencent_appid: tencentTemp.tencent_appid
+      }
+      this.options.token = tencentTemp.token
+      this.options.timestamp = tencentTemp.timestamp
+    }
 
+    const services = this.provider.getServiceResource()
     const func = new DeployFunction(this.options, this.serverless)
     const trigger = new DeployTrigger(this.options, this.serverless)
     const MetricsHandler = new MetricsFunction(this.options, this.serverless)

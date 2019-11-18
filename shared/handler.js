@@ -11,6 +11,7 @@ const MonitorClinet = tencentcloud.monitor.v20180724.Client
 
 class AbstractHandler {
   constructor(options, serverless) {
+
     const { credentials, region } = options
     const { tencent_appid, tencent_secret_id, tencent_secret_key } = credentials
     this.options = options
@@ -49,7 +50,9 @@ class AbstractHandler {
   }
 
   static getClientInfo(secret_id, secret_key, options) {
-    const cred = new Credential(secret_id, secret_key)
+    const cred = options.token
+      ? new Credential(secret_id, secret_key, options.token)
+      : new Credential(secret_id, secret_key)
     const httpProfile = new HttpProfile()
     httpProfile.reqTimeout = 60
     const clientProfile = new ClientProfile('HmacSHA256', httpProfile)
@@ -95,13 +98,26 @@ class AbstractHandler {
     const chunkSize = options.chunkSize || 1024 * 1024 * 8
     const timeout = options.timeout || 120
 
+    if (!options.token) {
+      return new tencentcloudCos({
+        SecretId: secret_id,
+        SecretKey: secret_key,
+        FileParallelLimit: fileParallelLimit,
+        ChunkParallelLimit: chunkParallelLimit,
+        ChunkSize: chunkSize,
+        Timeout: timeout * 1000
+      })
+    }
+
     return new tencentcloudCos({
-      SecretId: secret_id,
-      SecretKey: secret_key,
-      FileParallelLimit: fileParallelLimit,
-      ChunkParallelLimit: chunkParallelLimit,
-      ChunkSize: chunkSize,
-      Timeout: timeout * 1000
+      getAuthorization: function(option, callback) {
+        callback({
+          TmpSecretId: secret_id,
+          TmpSecretKey: secret_key,
+          XCosSecurityToken: options.token,
+          ExpiredTime: options.timestamp
+        })
+      }
     })
   }
 
