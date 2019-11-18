@@ -41,6 +41,7 @@
     "lodash": "^4.17.15",
     "mocha": "^6.2.2",
     "open": "^7.0.0",
+    "qrcode": "^1.4.4",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.88.0",
     "tencentcloud-sdk-nodejs": "^3.0.87",

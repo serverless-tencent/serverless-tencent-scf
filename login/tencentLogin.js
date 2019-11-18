@@ -9,7 +9,7 @@ const os        = require('os');
 const fs        = require('fs');
 const ini       = require('ini');
 const uuidv4    = require('uuid/v4');
-const qrcode    = require('qrcode-terminal');
+const QRCode    = require('qrcode-terminal');
 const querystring     = require('querystring');
 const utils           = require('../shared/utils');
 const tencentProvider = require('../provider/tencentProvider');
@@ -108,16 +108,20 @@ class TencentLogin {
             const authUrl = util.format('%s&app_id=%s&redirect_url=%s', authorizeUrl,
                             appId, querystring.escape(callbackUrl));
             console.log(authUrl);
-            qrcode.generate(authUrl, {small: true});
+            QRCode.generate(authUrl, {small: true});
+
+            // QRCode.toString(authUrl, {type: 'terminal'}, function (err, url) {
+            //     console.log(url)
+            // })
 
             this.serverless.cli.log('Please scan qr code login from wechat');
 
             this.serverless.cli.log('Wait login...');
             // wait 3s start check login status
-            // await this.sleep(3000);
+            await this.sleep(3000);
 
             let loginFlag = false;
-            let timeout = 60;
+            let timeout = 600;
             let loginData;
             while (timeout > 0) {
                 loginData = await this.checkStatus(uuid);
@@ -145,6 +149,7 @@ class TencentLogin {
             const iniBody = ini.stringify(config, { section: 'default' });
             fs.writeFileSync(credentials, iniBody);
             this.serverless.cli.log('Login successful for TencentCloud');
+            
             // setTimeout(async ()=>{
             //     await open(authUrl, {wait: true});
             //     quit = true;

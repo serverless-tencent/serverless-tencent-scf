@@ -74,7 +74,8 @@ class TencentProvider {
 	constructor(serverless, options) {
 		this.options = options;
 		this.serverless = serverless;
-		if (serverless.pluginManager.cliCommands.indexOf('login') == -1) 
+		if (serverless.pluginManager.cliCommands && 
+			serverless.pluginManager.cliCommands.indexOf('login') == -1) 
 			this.getCredentials(this.serverless, this.options);
 		this.serverless.setProvider(constants.providerName, this);
 		this.provider = this;
