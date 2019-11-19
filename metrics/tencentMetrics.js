@@ -57,7 +57,7 @@ class TencentInfo {
   }
 
   async metrics() {
-    if (!this.options.secret_id) {
+    if (!this.options.credentials.tencent_secret_id) {
       const provider = new tencentProvider(this.serverless, this.options)
       const tencentTemp = await provider.getTempKey()
       this.options.credentials = {
