@@ -4,7 +4,6 @@ module.exports = {
   validate() {
     this.validateServicePath()
     this.validateServiceName()
-    this.validateHandlers()
     this.validateEventsProperty()
   },
 
@@ -30,44 +29,6 @@ module.exports = {
           ' name should not be longer than 128 characters'
       )
     }
-    return
-  },
-
-  validateHandlers() {
-    const { functions } = this.serverless.service
-    _.forEach(functions, (funcObject, funcKey) => {
-      if (!/^[a-zA-Z_][a-zA-Z0-9\-_]*$/.test(funcKey)) {
-        throw new Error(
-          `The name of your function ${funcKey} is invalid. A function` +
-            ' name should consist only of letters, digits, underscores and' +
-            ' dashes, and it can not start with digits or underscores'
-        )
-      }
-      if (funcKey.length > 128) {
-        throw new Error(
-          `The name of your function ${funcKey} is invalid. A function` +
-            ' name should not be longer than 128 characters'
-        )
-      }
-
-      if (!funcObject.handler) {
-        const errorMessage = [
-          `Missing "handler" property for function "${funcKey}".`,
-          ' Your function needs a "handler".',
-          ' Please check the docs for more info.'
-        ].join('')
-        throw new Error(errorMessage)
-      }
-
-      if (!/^[^.]+\.[^.]+$/.test(funcObject.handler)) {
-        const errorMessage = [
-          `The "handler" property for the function "${funcKey}" is invalid.`,
-          ' Handlers should be specified like ${fileName}.${funcName}',
-          ' Please check the docs for more info.'
-        ].join('')
-        throw new Error(errorMessage)
-      }
-    })
     return
   },
 
