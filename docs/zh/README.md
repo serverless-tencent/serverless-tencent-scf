@@ -74,7 +74,7 @@ plugins:
   - serverless-tencent-scf
 
 functions:
-  function_one:   # function name
+  hello_world:   # function name
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
@@ -85,6 +85,8 @@ functions:
              serviceId:
              httpMethod: ANY
 ```
+
+> 注，Serverless Framework会为控制台中实际部署的函数增加前缀组成函数名称，前缀规范为`service-stage-function`，默认的stage为`dev`。以上述配置为例，配置文件中的函数名称`hello_world`在控制台中的函数名称对应为`my-service-dev-hello_world`。
 
 #### 部署服务
 通过该命令部署或更新您创建的函数和触发器，资源配置会和`serverless.yml`中保持一致。
@@ -105,7 +107,7 @@ $ curl -X POST https://service-xxxx-1300000000.ap-guangzhou.apigateway.myqcloud.
 通过以下命令云端调用函数并且获得日志信息的返回。
 
 ```bash
-serverless invoke -f function_one
+serverless invoke -f hello_world
 ```
 更多部署详情参考 [云端调用](./云端调用.md)。
 
@@ -113,7 +115,7 @@ serverless invoke -f function_one
 
 单独开启一个命令行，通过如下命令，实时获取函数`hello`的云端调用日志信息。
 ```bash
-serverless logs -f function_one -t
+serverless logs -f hello_world -t
 ```
 
 #### 移除服务
