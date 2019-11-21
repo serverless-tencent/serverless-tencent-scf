@@ -1,5 +1,5 @@
 {
-  "name": "serverless-tencent-scf-beta",
+  "name": "serverless-tencent-scf",
   "version": "0.1.16",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Tencent Cloud Functions.",
   "main": "index.js",
