@@ -11,7 +11,10 @@ class LogsFunction extends AbstractHandler {
       StartTime: startTime,
       EndTime: endTime,
       Namespace: 'default',
-      Filter: filter
+      Filter: filter,
+      Offset: 0,
+      Limit: 10000,
+      Qualifier: '$LATEST'
     }
     req.from_json_string(JSON.stringify(body))
     const handler = util.promisify(this.scfClient.GetFunctionLogs.bind(this.scfClient))
