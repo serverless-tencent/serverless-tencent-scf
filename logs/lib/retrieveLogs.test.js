@@ -1,34 +1,34 @@
-'use strict';
-
-const sinon         = require('sinon');
-const RetrieveLogs  = require('./retrieveLogs');
+const sinon = require('sinon')
+const Serverless = require('../test/serverless')
+const RetrieveLogs = require('./retrieveLogs')
 
 describe('RetrieveLogs@Library', () => {
-    let retrieveLogs;
-    let retrieveLogsStub;
+  let retrieveLogs
+  let retrieveLogsStub
 
-    let options;
+  let options
+  let serverless
 
-    beforeEach(() => {
-        options = {
-            region: 'ap-guangzhou',
-        };
-        retrieveLogs = new RetrieveLogs('appid', 'secret_id', 'secret_key', options);
+  beforeEach(() => {
+    serverless = new Serverless()
+    options = {
+      region: 'ap-guangzhou'
+    }
+    retrieveLogs = new RetrieveLogs(options, serverless)
 
-        retrieveLogsStub = sinon.stub(retrieveLogs, 'logs')
-            .returns(Promise.resolve());
-    });
+    retrieveLogsStub = sinon.stub(retrieveLogs, 'logs').returns(Promise.resolve())
+  })
 
-    afterEach(() => {
-        retrieveLogs.logs.restore();
-    });
+  afterEach(() => {
+    retrieveLogs.logs.restore()
+  })
 
-    it('should make the logs function accessible', () => {
-        retrieveLogs.should.to.be.an.instanceof(RetrieveLogs);
-    });
+  it('should make the logs function accessible', () => {
+    retrieveLogs.should.to.be.an.instanceof(RetrieveLogs)
+  })
 
-    it('should run library logs function', () => retrieveLogs
-        .logs().then(()=>{
-        retrieveLogsStub.calledOnce.should.equal(true)
-    }));
-});
+  it('should run library logs function', () =>
+    retrieveLogs.logs().then(() => {
+      retrieveLogsStub.calledOnce.should.equal(true)
+    }))
+})

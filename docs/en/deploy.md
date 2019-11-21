@@ -13,7 +13,6 @@ serverless deploy
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
-- `--force` Forces a deployment to take place.
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
 
 ## Artifacts

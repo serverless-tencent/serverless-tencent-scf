@@ -41,6 +41,7 @@ exports.main_handler = async (event, context, callback) => {
 
 ## Event message structures of integration request for API Gateway trigger
 
+
 When an API Gateway trigger receives a request, it sends the event data to the bound function in JSON format as shown below.
 
 ```json
