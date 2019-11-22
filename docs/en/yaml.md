@@ -84,6 +84,7 @@ functions:
 #            stageName: release
 #            serviceId:
 #            httpMethod: ANY
+#            integratedResponse: true
 #      - cmq:
 #          name: cmq_trigger
 #          parameters:
