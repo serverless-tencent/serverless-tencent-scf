@@ -1,52 +1,48 @@
-'use strict';
-
 // mock of the serverless instance
 class Serverless {
-    constructor() {
+  constructor() {
+    this.providers = {}
 
-        this.providers = {};
-
-        this.service = {
-            provider: {
-                credentials: ''
-            },
-            service: 'test-service'
-        };
-
-        this.service.getAllFunctions = function() { 
-            return Object.keys(this.functions);
-        };
-
-        this.service.getFunction = function(funcName) {
-            this.functions[funcName]
-                .name = `${this.service}-dev-${funcName}`;
-            return this.functions[funcName];
-        };
-
-        this.utils = {
-            writeFileSync() {},
-            readFileSync() {},
-        };
-
-        this.cli = {
-            log() {},
-            consoleLog() {},
-            printDot() {},
-        };
-
-        this.plugins = [];
-        this.pluginManager = {
-            addPlugin: plugin => this.plugins.push(plugin),
-        };
+    this.service = {
+      provider: {
+        credentials: ''
+      },
+      service: 'test-service'
     }
 
-    setProvider(name, provider) {
-        this.providers[name] = provider;
+    this.service.getAllFunctions = function() {
+      return Object.keys(this.functions)
     }
 
-    getProvider(name) {
-        return this.providers[name];
+    this.service.getFunction = function(funcName) {
+      this.functions[funcName].name = `${this.service}-dev-${funcName}`
+      return this.functions[funcName]
     }
+
+    this.utils = {
+      writeFileSync() {},
+      readFileSync() {}
+    }
+
+    this.cli = {
+      log() {},
+      consoleLog() {},
+      printDot() {}
+    }
+
+    this.plugins = []
+    this.pluginManager = {
+      addPlugin: (plugin) => this.plugins.push(plugin)
+    }
+  }
+
+  setProvider(name, provider) {
+    this.providers[name] = provider
+  }
+
+  getProvider(name) {
+    return this.providers[name]
+  }
 }
 
-module.exports = Serverless;
+module.exports = Serverless
