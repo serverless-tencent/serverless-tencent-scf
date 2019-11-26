@@ -93,6 +93,22 @@ class TencentDeployFunction {
     this.serverless.cli.log(`Setting tags for function ${funcObject.FuncName}`)
     await func.createTags('default', funcObject.FuncName, funcObject.Properties.Tags)
 
+    // Function status
+    let status = 'Updating'
+    let times = 90
+    while (status == 'Updating' || status == 'Creating') {
+      const tempFunc = await this.getFunction('default', funcObject.FuncName)
+      status = tempFunc.Status
+      await utils.sleep(1000)
+      times = times - 1
+      if (times <= 0) {
+        throw `Function ${funcObject.FuncName} create/update failed`
+      }
+    }
+    if (status != 'Active') {
+      throw `Function ${funcObject.FuncName} create/update failed`
+    }
+
     this.serverless.cli.log(`Creating trigger for function ${funcObject.FuncName}`)
     result = await trigger.create(
       'default',
