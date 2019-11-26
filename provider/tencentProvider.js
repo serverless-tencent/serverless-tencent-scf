@@ -126,16 +126,18 @@ class TencentProvider {
     const tencent_credentials = await login.login()
     if (tencent_credentials) {
       tencent_credentials.timestamp = Date.now() / 1000
-      const tencent_credentials_json = JSON.stringify(tencent_credentials)
       try {
         const tencent = {
-          tencent_secret_id: tencent_credentials.tencent_secret_id,
-          tencent_secret_key: tencent_credentials.tencent_secret_key,
-          tencent_appid: tencent_credentials.tencent_appid,
-          token: tencent_credentials.tencent_token,
+          tencent_secret_id: tencent_credentials.secret_id,
+          tencent_secret_key: tencent_credentials.secret_key,
+          tencent_appid: tencent_credentials.appid,
+          token: tencent_credentials.token,
+          expired: tencent_credentials.expired,
+          signature: tencent_credentials.signature,
+          uuid: tencent_credentials.uuid,
           timestamp: tencent_credentials.timestamp
         }
-        await fs.writeFileSync('./.serverless/.env', tencent_credentials_json)
+        await fs.writeFileSync('./.env_temp', JSON.stringify(tencent))
         return tencent
       } catch (e) {
         throw 'Error getting temporary key: ' + e
@@ -146,16 +148,33 @@ class TencentProvider {
   async getTempKey() {
     const that = this
     try {
-      const data = await fs.readFileSync('./.serverless/.env', 'utf8')
+      const data = await fs.readFileSync('./.env_temp', 'utf8')
       try {
         const tencent = {}
         const tencent_credentials_read = JSON.parse(data)
-        if (Date.now() / 1000 - tencent_credentials_read.timestamp <= 7000) {
-          tencent.tencent_secret_id = tencent_credentials_read.tencent_secret_id
-          tencent.tencent_secret_key = tencent_credentials_read.tencent_secret_key
-          tencent.tencent_appid = tencent_credentials_read.tencent_appid
-          tencent.token = tencent_credentials_read.tencent_token
-          tencent.timestamp = tencent_credentials_read.timestamp
+        if (
+          Date.now() / 1000 - tencent_credentials_read.timestamp <= 6000 &&
+          tencent_credentials_read.tencent_appid
+        ) {
+          return tencent_credentials_read
+        }
+        const login = new TencentLogin()
+        const tencent_credentials_flush = await login.flush(
+          tencent_credentials_read.uuid,
+          tencent_credentials_read.expired,
+          tencent_credentials_read.signature,
+          tencent_credentials_read.tencent_appid
+        )
+        if (tencent_credentials_flush) {
+          tencent.tencent_secret_id = tencent_credentials_flush.secret_id
+          tencent.tencent_secret_key = tencent_credentials_flush.secret_key
+          tencent.tencent_appid = tencent_credentials_flush.appid
+          tencent.token = tencent_credentials_flush.token
+          tencent.expired = tencent_credentials_flush.expired
+          tencent.signature = tencent_credentials_flush.signature
+          tencent.uuid = tencent_credentials_read.uuid
+          tencent.timestamp = Date.now() / 1000
+          await fs.writeFileSync('./.env_temp', JSON.stringify(tencent))
           return tencent
         }
         return await that.doLogin()

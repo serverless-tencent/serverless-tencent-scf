@@ -61,7 +61,6 @@ class TencentLogs {
       this.options.timestamp = tencentTemp.timestamp
     }
     try {
-      const handler = new LogsFunction(this.options, this.serverless)
       const timeFormat = 'yyyy-MM-dd hh:mm:ss'
       this.serverless.cli.log(`Get function logs...`)
       const functionName = this.provider.getFunctionName(this.options.function)
@@ -71,6 +70,7 @@ class TencentLogs {
         const startTime = this.options.startTime || this.getTimeFunction(timeFormat, interval)
         for (let times = 0; times < 100000; times++) {
           await utils.sleep(interval)
+          const handler = new LogsFunction(this.options, this.serverless)
           const endTime = this.getTimeFunction('yyyy-MM-dd hh:mm:ss', 0)
           const result = await handler.logs(
             functionName,
