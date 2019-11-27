@@ -96,9 +96,12 @@ class DeployTrigger extends AbstractHandler {
             api: {
               authRequired: 'FALSE',
               requestConfig: {
-                method: trigger.Properties.HttpMethod || 'GET'
+                method: trigger.Properties.HttpMethod || 'GET',
+                path: trigger.Properties.Path || '/' + funcObject.FuncName
               },
-              isIntegratedResponse: trigger.Properties.IntegratedResponse ? 'TRUE' : 'FALSE'
+              isIntegratedResponse: trigger.Properties.IntegratedResponse ? 'TRUE' : 'FALSE',
+              enableCORS: trigger.Properties.EnableCORS ? 'TRUE' : 'FALSE',
+              serviceTimeout: trigger.Properties.ServiceTimeout || 10
             },
             service: {
               serviceName: 'SCF_API_SERVICE'
