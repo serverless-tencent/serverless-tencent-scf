@@ -103,6 +103,7 @@ class TencentLogs {
           }
         }
       } else {
+        const handler = new LogsFunction(this.options, this.serverless)
         const result = await handler.logs(
           functionName,
           this.options.startTime || this.getTimeFunction(timeFormat, 1 * 60 * 60 * 1000),
