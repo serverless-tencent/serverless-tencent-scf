@@ -9,7 +9,6 @@
     "git": "https://github.com/serverless-tencent/serverless-tencent-scf"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --cache",
     "coverage": "jest --coverage"
   },
