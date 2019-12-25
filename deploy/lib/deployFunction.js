@@ -8,13 +8,13 @@ const _ = require('lodash')
 const util = require('util')
 
 class DeployFunction extends AbstractHandler {
-  async deploy(ns, funcObject) {
+  async deploy(ns, funcObject, provider) {
     if (funcObject.Properties.enableRoleAuth == true) {
       await this.addRole()
     }
     const func = await this.getFunction(ns, funcObject.FuncName)
     if (!func) {
-      await this.createFunction(ns, funcObject)
+      await this.createFunction(ns, funcObject, provider)
     } else {
       if (func.Runtime != funcObject.Properties.Runtime) {
         throw `Runtime error: Release runtime(${func.Runtime}) and local runtime(${funcObject.Properties.Runtime}) are inconsistent`
@@ -37,7 +37,7 @@ class DeployFunction extends AbstractHandler {
         throw `Function ${funcObject.FuncName} update failed`
       }
       this.serverless.cli.log('Updating configure... ')
-      await this.updateConfiguration(ns, func, funcObject)
+      await this.updateConfiguration(ns, func, funcObject, provider)
       return func
     }
     return null
@@ -138,7 +138,7 @@ class DeployFunction extends AbstractHandler {
     }
   }
 
-  async createFunction(ns, funcObject) {
+  async createFunction(ns, funcObject, provider) {
     const createFuncRequest = {
       Region: funcObject.Properties.Region,
       FunctionName: funcObject.FuncName,
@@ -147,17 +147,16 @@ class DeployFunction extends AbstractHandler {
         CosObjectName: '/' + funcObject.Properties.CodeUri.Key
       },
       Namespace: ns,
-      Runtime: funcObject.Properties.Runtime,
       Handler: funcObject.Properties.Handler,
-      Role: funcObject.Properties.Role,
-      MemorySize: funcObject.Properties.MemorySize,
-      Timeout: funcObject.Properties.Timeout,
+      Runtime: provider.getRuntime(funcObject),
+      Role: provider.getRole(funcObject),
+      MemorySize: provider.getMemorySize(funcObject),
+      Timeout: provider.getTimeout(funcObject),
       Description: funcObject.Properties.Description
     }
 
-    if (!_.isEmpty(funcObject.Properties.Environment)) {
-      const env = funcObject.Properties.Environment
-
+    const env = funcObject.Properties.Environment || provider.getEnvironment(funcObject);
+    if (!_.isEmpty(env)) {
       createFuncRequest.Environment = {
         Variables: []
       }
@@ -169,10 +168,9 @@ class DeployFunction extends AbstractHandler {
         createFuncRequest.Environment.Variables.push(item)
       }
     }
-
-    if (!_.isEmpty(funcObject.Properties.VpcConfig)) {
-      const vpc = funcObject.Properties.VpcConfig
-
+    
+    const vpc = funcObject.Properties.VpcConfig || provider.getVPCConfig(funcObject);
+    if (!_.isEmpty(vpc)) {
       createFuncRequest.VpcConfig = {
         VpcId: vpc.VpcId,
         SubnetId: vpc.SubnetId
@@ -210,20 +208,19 @@ class DeployFunction extends AbstractHandler {
     }
   }
 
-  async updateConfiguration(ns, oldFunc, funcObject) {
+  async updateConfiguration(ns, oldFunc, funcObject, provider) {
     const configArgs = {
       Region: this.options.region,
       FunctionName: funcObject.FuncName,
       Namespace: ns,
-      Runtime: funcObject.Properties.Runtime,
-      Role: funcObject.Properties.Role,
-      MemorySize: funcObject.Properties.MemorySize,
-      Timeout: funcObject.Properties.Timeout
+      Runtime: provider.getRuntime(funcObject),
+      Role: provider.getRole(funcObject),
+      MemorySize: provider.getMemorySize(funcObject),
+      Timeout: provider.getTimeout(funcObject),
     }
 
-    if (!_.isEmpty(funcObject.Properties.Environment)) {
-      const env = funcObject.Properties.Environment
-
+    const env = funcObject.Properties.Environment || provider.getEnvironment(funcObject);
+    if (!_.isEmpty(env)) {
       configArgs.Environment = {
         Variables: []
       }
@@ -232,12 +229,12 @@ class DeployFunction extends AbstractHandler {
           Key: key,
           Value: env.Variables[key]
         }
-        configArgs.Environment.Variables.push(item)
+        createFuncRequest.Environment.Variables.push(item)
       }
     }
-
-    if (!_.isEmpty(funcObject.Properties.VpcConfig)) {
-      const vpc = funcObject.Properties.VpcConfig
+    
+    const vpc = funcObject.Properties.VpcConfig || provider.getVPCConfig(funcObject);
+    if (!_.isEmpty(vpc)) {
       configArgs.VpcConfig = {
         VpcId: vpc.VpcId,
         SubnetId: vpc.SubnetId

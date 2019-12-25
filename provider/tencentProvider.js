@@ -190,6 +190,22 @@ class TencentProvider {
     return this.serverless.service.service + '-' + this.getStage() + '-' + timeData
   }
 
+  getRuntime(funcObject) {
+    return funcObject.runtime || this.serverless.service.provider.runtime
+  }
+
+  getRole(funcObject) {
+    return funcObject.role || this.serverless.service.provider.role
+  }
+
+  getMemorySize(funcObject) {
+    return funcObject.memorySize || this.serverless.service.provider.memorySize
+  }
+
+  getTimeout(funcObject) {
+    return funcObject.timeout || this.serverless.service.provider.timeout
+  }
+
   getEnvironment(funcObject) {
     const providerInfo = this.serverless.service.provider.environment
     const funcObjectInfo = funcObject.environment

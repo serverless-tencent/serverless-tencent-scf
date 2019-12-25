@@ -45,7 +45,7 @@ class TencentDeployFunction {
 
     const services = this.provider.getServiceResource()
 
-    const func = new DeployFunction(this.options, this.serverless)
+    const func = new DeployFunction(this.options, this.serverless, this.provider)
     const trigger = new DeployTrigger(this.options, this.serverless)
     const MetricsHandler = new MetricsFunction(this.options, this.serverless)
 

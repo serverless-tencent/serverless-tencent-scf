@@ -68,7 +68,7 @@ class TencentDeploy {
       funcObject.FuncName = this.provider.getFunctionName(funcName)
 
       this.serverless.cli.log(`Creating function ${funcObject.FuncName}`)
-      const oldFunc = await func.deploy('default', funcObject)
+      const oldFunc = await func.deploy('default', funcObject, this.provider)
       this.serverless.cli.log(`Created function ${funcObject.FuncName}`)
 
       this.serverless.cli.log(`Setting tags for function ${funcObject.FuncName}`)
