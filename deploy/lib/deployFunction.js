@@ -22,11 +22,19 @@ class DeployFunction extends AbstractHandler {
       this.serverless.cli.log('Updating code... ')
       await this.updateFunctionCode(ns, funcObject)
       // when update code Status is Active, continue
-      let status = 'updating'
-      while (status != 'Active') {
+      let status = 'Updating'
+      let times = 90
+      while (status == 'Updating') {
         const tempFunc = await this.getFunction(ns, funcObject.FuncName)
         status = tempFunc.Status
-        await utils.sleep(500)
+        await utils.sleep(1000)
+        times = times - 1
+        if (times <= 0) {
+          throw `Function ${funcObject.FuncName} update failed`
+        }
+      }
+      if (status != 'Active') {
+        throw `Function ${funcObject.FuncName} update failed`
       }
       this.serverless.cli.log('Updating configure... ')
       await this.updateConfiguration(ns, func, funcObject)

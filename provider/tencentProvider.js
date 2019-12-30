@@ -340,7 +340,10 @@ class TencentProvider {
         HttpMethod: event.parameters.httpMethod,
         ServiceId: serviceId,
         IntegratedResponse: event.parameters.integratedResponse,
-        Enable: event.parameters.enable
+        Enable: event.parameters.enable,
+        Path: event.parameters.path,
+        ServiceTimeout: event.parameters.serviceTimeout,
+        EnableCORS: event.parameters.enableCORS
       }
     }
     return trigger

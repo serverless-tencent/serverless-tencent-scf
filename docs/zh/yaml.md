@@ -83,6 +83,10 @@ functions:
 #            stageName: release
 #            serviceId:
 #            httpMethod: ANY
+#            integratedResponse: true
+#            path: /abc/cde
+#            enableCORS: true
+#            serviceTimeout: 10
 #      - cmq:
 #          name: cmq_trigger
 #          parameters:
