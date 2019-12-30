@@ -261,7 +261,7 @@ class TencentProvider {
         enableRoleAuth: provider.enableRoleAuth || true,
         Type: 'Event',
         Description: funcObject.description || provider.description || '',
-        Role: funcObject.role || provider.role || 'QCS_SCFExcuteRole',
+        Role: funcObject.role || provider.role,
         Handler: funcObject.handler || 'index.main_handler',
         MemorySize: funcObject.memorySize || provider.memorySize || 128,
         Timeout: funcObject.timeout || provider.timeout || 3,
