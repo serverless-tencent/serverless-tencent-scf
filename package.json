@@ -43,7 +43,8 @@
     "request": "^2.88.0",
     "tencentcloud-sdk-nodejs": "^3.0.87",
     "universal-analytics": "^0.4.20",
-    "tencent-login": "^0.1.6"
+    "tencent-login": "^0.1.6",
+    "serverless-tencent-auth-tool": "^1.0.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.5",

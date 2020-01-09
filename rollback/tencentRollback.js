@@ -26,17 +26,19 @@ class TencentRollback {
   }
 
   async rollback() {
+    const provider = new tencentProvider(this.serverless, this.options)
     if (!this.options.credentials || !this.options.credentials.tencent_secret_id) {
-      const provider = new tencentProvider(this.serverless, this.options)
       const tencentTemp = await provider.getTempKey()
       this.options.credentials = {
         tencent_secret_id: tencentTemp.tencent_secret_id,
         tencent_secret_key: tencentTemp.tencent_secret_key,
-        tencent_appid: tencentTemp.tencent_appid
+        tencent_appid: tencentTemp.tencent_appid,
+        tencent_owneruin: tencentTemp.tencent_owneruin
       }
       this.options.token = tencentTemp.token
       this.options.timestamp = tencentTemp.timestamp
     }
+    await provider.getUserAuth(this.options.credentials.tencent_owneruin)
     const Handler = new RollbackService(this.options, this.serverless)
     const fileKeyPrefix = this.serverless.service.service + '-' + this.options.stage
     const cosBucket = this.provider.getDeployCosBucket()

@@ -4,8 +4,10 @@ const os = require('os')
 const ini = require('ini')
 const _ = require('lodash')
 const util = require('util')
+const QRCode = require('qrcode')
 const TencentLogin = require('tencent-login')
 const tencentcloud = require('tencentcloud-sdk-nodejs')
+const { GetUserAuthInfo } = require('serverless-tencent-tools').Account
 const ClientProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/client_profile.js')
 const HttpProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/http_profile.js')
 const AbstractModel = require('tencentcloud-sdk-nodejs/tencentcloud/common/abstract_model')
@@ -17,7 +19,6 @@ const constants = {
 class GetUserAppIdResponse extends AbstractModel {
   constructor() {
     super()
-
     this.RequestId = null
   }
 
@@ -26,6 +27,7 @@ class GetUserAppIdResponse extends AbstractModel {
       return
     }
     this.AppId = 'RequestId' in params ? params.AppId : null
+    this.OwnerUin = 'RequestId' in params ? params.OwnerUin : null
     this.RequestId = 'RequestId' in params ? params.RequestId : null
   }
 }
@@ -52,6 +54,36 @@ class TencentProvider {
 
   static getProviderName() {
     return constants.providerName
+  }
+
+  async getUserAuth(uin) {
+    try {
+      const getUserAuthInfo = new GetUserAuthInfo()
+      const result = await getUserAuthInfo.isAuth(uin)
+      if (result['Error'] == true) {
+        console.log('Failed to get real name authentication result.')
+        process.exit(-1)
+      } else {
+        if (result['Message']['Authentication'] == 1) {
+          return true
+        }
+        const verifyUrl = 'https://cloud.tencent.com/verify/identity'
+        console.log(
+          "You don't have real name authentication yet. You can open the url or scan QR code for real name authentication."
+        )
+        console.log('Real name authentication url: ')
+        console.log(verifyUrl)
+        console.log('Real name authentication QR code: ')
+        QRCode.toString(verifyUrl, { type: 'terminal' }, function(err, url) {
+          console.log(url)
+        })
+        console.log('Please re operate after real name authentication.')
+        process.exit(-1)
+      }
+    } catch (e) {
+      console.log(e)
+      process.exit(-1)
+    }
   }
 
   getAppid(credentials) {
@@ -137,6 +169,14 @@ class TencentProvider {
           uuid: tencent_credentials.uuid,
           timestamp: tencent_credentials.timestamp
         }
+        // From cam to getting appid
+        const userInfo = await this.getAppid({
+          SecretId: tencent.tencent_secret_id,
+          SecretKey: tencent.tencent_secret_key,
+          token: tencent.token
+        })
+        tencent.tencent_owneruin = userInfo.OwnerUin
+        tencent.tencent_appid = userInfo.AppId
         await fs.writeFileSync('./.env_temp', JSON.stringify(tencent))
         return tencent
       } catch (e) {
@@ -152,10 +192,16 @@ class TencentProvider {
       try {
         const tencent = {}
         const tencent_credentials_read = JSON.parse(data)
-        if (
-          Date.now() / 1000 - tencent_credentials_read.timestamp <= 6000 &&
-          tencent_credentials_read.tencent_appid
-        ) {
+        if (Date.now() / 1000 - tencent_credentials_read.timestamp <= 6000) {
+          const userInfo = await this.getAppid({
+            SecretId: tencent_credentials_read.tencent_secret_id,
+            SecretKey: tencent_credentials_read.tencent_secret_key,
+            token: tencent_credentials_read.token
+          })
+
+          // From cam to getting appid
+          tencent_credentials_read.tencent_owneruin = userInfo.OwnerUin
+          tencent_credentials_read.tencent_appid = userInfo.AppId
           return tencent_credentials_read
         }
         const login = new TencentLogin()
@@ -175,6 +221,14 @@ class TencentProvider {
           tencent.uuid = tencent_credentials_read.uuid
           tencent.timestamp = Date.now() / 1000
           await fs.writeFileSync('./.env_temp', JSON.stringify(tencent))
+          // From cam to getting appid
+          const userInfo = await this.getAppid({
+            SecretId: tencent.tencent_secret_id,
+            SecretKey: tencent.tencent_secret_key,
+            token: tencent.token
+          })
+          tencent.tencent_owneruin = userInfo.OwnerUin
+          tencent.tencent_appid = userInfo.AppId
           return tencent
         }
         return await that.doLogin()
@@ -242,6 +296,7 @@ class TencentProvider {
           SecretKey: this.options.credentials.tencent_secret_key
         })
         this.options.credentials.tencent_appid = appid.AppId
+        this.options.credentials.tencent_owneruin = appid.OwnerUin
       }
     } catch (e) {}
     return
