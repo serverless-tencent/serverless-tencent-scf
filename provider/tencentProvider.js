@@ -290,14 +290,12 @@ class TencentProvider {
         }
       })
       // From cam to getting appid
-      if (!this.options.credentials.tencent_appid) {
-        const appid = await this.getAppid({
-          SecretId: this.options.credentials.tencent_secret_id,
-          SecretKey: this.options.credentials.tencent_secret_key
-        })
-        this.options.credentials.tencent_appid = appid.AppId
-        this.options.credentials.tencent_owneruin = appid.OwnerUin
-      }
+      const appid = await this.getAppid({
+        SecretId: this.options.credentials.tencent_secret_id,
+        SecretKey: this.options.credentials.tencent_secret_key
+      })
+      this.options.credentials.tencent_appid = appid.AppId
+      this.options.credentials.tencent_owneruin = appid.OwnerUin
     } catch (e) {}
     return
   }
