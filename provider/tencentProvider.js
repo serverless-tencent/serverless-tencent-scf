@@ -72,7 +72,7 @@ class TencentProvider {
           "You don't have real name authentication yet. You can open the url or scan QR code for real name authentication."
         )
         console.log('Real name authentication url: ')
-        console.log(verifyUrl)
+        console.log('https://console.cloud.tencent.com/developer/auth')
         console.log('Real name authentication QR code: ')
         QRCode.toString(verifyUrl, { type: 'terminal' }, function(err, url) {
           console.log(url)
