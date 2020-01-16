@@ -24,7 +24,7 @@ class DeployFunction extends AbstractHandler {
       // when update code Status is Active, continue
       let status = 'Updating'
       let times = 90
-      while (status == 'Updating') {
+      while (status == 'Updating' || status == 'Creating') {
         const tempFunc = await this.getFunction(ns, funcObject.FuncName)
         status = tempFunc.Status
         await utils.sleep(1000)
