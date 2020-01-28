@@ -50,7 +50,11 @@ class TencentLogs {
 
   async logs() {
     const provider = new tencentProvider(this.serverless, this.options)
-    if (!this.options.credentials || !this.options.credentials.tencent_secret_id) {
+    if (
+      !this.options.credentials ||
+      !this.options.credentials.tencent_secret_id ||
+      !this.options.credentials.tencent_owneruin
+    ) {
       const tencentTemp = await provider.getTempKey()
       this.options.credentials = {
         tencent_secret_id: tencentTemp.tencent_secret_id,
