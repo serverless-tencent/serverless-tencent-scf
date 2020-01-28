@@ -1,6 +1,6 @@
 {
   "name": "serverless-tencent-scf",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "description": "Provider plugin for the Serverless Framework v1.x which adds support for Tencent Cloud Functions.",
   "main": "index.js",
   "author": "Tencent Cloud, Inc.",
@@ -44,7 +44,8 @@
     "tencentcloud-sdk-nodejs": "^3.0.87",
     "universal-analytics": "^0.4.20",
     "tencent-login": "^0.1.6",
-    "serverless-tencent-auth-tool": "^1.0.9"
+    "serverless-tencent-tools": "^0.0.9",
+    "serverless-tencent-auth-tool": "^1.0.12"
   },
   "devDependencies": {
     "coveralls": "^3.0.5",
