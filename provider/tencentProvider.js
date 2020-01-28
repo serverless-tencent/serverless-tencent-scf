@@ -56,10 +56,33 @@ class TencentProvider {
     return constants.providerName
   }
 
+  async getUserCred(options) {
+    if (!options.credentials || !options.credentials.tencent_secret_id) {
+      const tencentTemp = await this.getTempKey()
+      this.options.credentials = {
+        tencent_secret_id: tencentTemp.tencent_secret_id,
+        tencent_secret_key: tencentTemp.tencent_secret_key,
+        tencent_appid: tencentTemp.tencent_appid,
+        tencent_owneruin: tencentTemp.tencent_owneruin
+      }
+      options.token = tencentTemp.token
+      options.timestamp = tencentTemp.timestamp
+    }
+    if (!options.credentials.tencent_owneruin || !options.credentials.tencent_appid) {
+      const appid = await this.getAppid({
+        SecretId: options.credentials.tencent_secret_id,
+        SecretKey: options.credentials.tencent_secret_key
+      })
+      options.credentials.tencent_appid = appid.AppId
+      options.credentials.tencent_owneruin = appid.OwnerUin
+    }
+    return options
+  }
+
   async getUserAuth(uin) {
     try {
       const getUserAuthInfo = new GetUserAuthInfo()
-      const result = await getUserAuthInfo.isAuth(uin)
+      const result = await getUserAuthInfo.isAuth(uin, 'plugin')
       if (result['Error'] == true) {
         console.log('Failed to get real name authentication result.')
         process.exit(-1)

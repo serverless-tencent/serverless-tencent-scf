@@ -58,21 +58,7 @@ class TencentInfo {
 
   async metrics() {
     const provider = new tencentProvider(this.serverless, this.options)
-    if (
-      !this.options.credentials ||
-      !this.options.credentials.tencent_secret_id ||
-      !this.options.credentials.tencent_owneruin
-    ) {
-      const tencentTemp = await provider.getTempKey()
-      this.options.credentials = {
-        tencent_secret_id: tencentTemp.tencent_secret_id,
-        tencent_secret_key: tencentTemp.tencent_secret_key,
-        tencent_appid: tencentTemp.tencent_appid,
-        tencent_owneruin: tencentTemp.tencent_owneruin
-      }
-      this.options.token = tencentTemp.token
-      this.options.timestamp = tencentTemp.timestamp
-    }
+    this.options = await provider.getUserCred(this.options)
     await provider.getUserAuth(this.options.credentials.tencent_owneruin)
     try {
       const Handler = new MetricsFunction(this.options, this.serverless)
