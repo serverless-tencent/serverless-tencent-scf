@@ -82,7 +82,7 @@ class TencentProvider {
   async getUserAuth(uin) {
     try {
       const getUserAuthInfo = new GetUserAuthInfo()
-      const result = await getUserAuthInfo.isAuth(uin, 'plugin')
+      const result = await getUserAuthInfo.isAuth(uin, { client: 'plugin' })
       if (result['Error'] == true) {
         console.log('Failed to get real name authentication result.')
         process.exit(-1)
