@@ -27,9 +27,6 @@ class TencentInvoke {
     this.options = await provider.getUserCred(this.options)
     await provider.getUserAuth(this.options.credentials.tencent_owneruin)
     try {
-      const options = {
-        region: this.options.region
-      }
       const invokeHandler = new Invoke(this.options, this.serverless)
       let context = null
       if (this.options.data) {

@@ -7,11 +7,14 @@ const util = require('util')
 const QRCode = require('qrcode')
 const TencentLogin = require('tencent-login')
 const tencentcloud = require('tencentcloud-sdk-nodejs')
-const { GetUserAuthInfo } = require('serverless-tencent-tools').Account
+const serverlessTencentTools = require('serverless-tencent-tools')
+const { GetUserAuthInfo } = serverlessTencentTools.Account
+const { DataReport } = serverlessTencentTools.Others.DataReport
 const ClientProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/client_profile.js')
 const HttpProfile = require('tencentcloud-sdk-nodejs/tencentcloud/common/profile/http_profile.js')
 const AbstractModel = require('tencentcloud-sdk-nodejs/tencentcloud/common/abstract_model')
 const AbstractClient = require('tencentcloud-sdk-nodejs/tencentcloud/common/abstract_client')
+
 const constants = {
   providerName: 'tencent'
 }
@@ -50,6 +53,19 @@ class TencentProvider {
     this.getCredentials(this.serverless, this.options)
     this.serverless.setProvider(constants.providerName, this)
     this.provider = this
+    let commands = ''
+    const commandsAttr = this.serverless.pluginManager.cliCommands
+    for (let i = 0; i < commandsAttr.length; i++) {
+      commands = commands + (i == 0 ? '' : '_') + commandsAttr[i]
+    }
+    this.reportInputs = {
+      name: 'serverless-tencent-scf',
+      project: this.serverless.service.service,
+      action: commands
+    }
+    try {
+      new DataReport().report(this.reportInputs)
+    } catch (e) {}
   }
 
   static getProviderName() {
@@ -75,14 +91,19 @@ class TencentProvider {
       })
       options.credentials.tencent_appid = appid.AppId
       options.credentials.tencent_owneruin = appid.OwnerUin
+      this.tempUin = appid.OwnerUin
     }
     return options
   }
 
   async getUserAuth(uin) {
     try {
+      try {
+        this.reportInputs.uin = uin
+        new DataReport().report(this.reportInputs)
+      } catch (e) {}
       const getUserAuthInfo = new GetUserAuthInfo()
-      const result = await getUserAuthInfo.isAuth(uin, { client: 'plugin' })
+      const result = await getUserAuthInfo.isAuth(uin, this.reportInputs)
       if (result['Error'] == true) {
         console.log('Failed to get real name authentication result.')
         process.exit(-1)

@@ -43,7 +43,6 @@ module.exports = {
       }
     ],
     'no-alert': 'error',
-    'no-console': 'error',
     'no-const-assign': 'error',
     'no-else-return': 'error',
     'no-empty': 'off',

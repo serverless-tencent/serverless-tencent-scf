@@ -79,19 +79,7 @@ class TencentDeployFunction {
     const oldFunc = await func.deploy('default', funcObject)
     this.serverless.cli.log(`Created function ${funcObject.FuncName}`)
 
-    // when update code Status is Active, continue
-    let status = 'Updating'
-    let times = 90
-    while (status == 'Updating' || status == 'Creating') {
-      const tempFunc = await func.getFunction('default', funcObject.FuncName)
-      status = tempFunc.Status
-      await utils.sleep(1000)
-      times = times - 1
-      if (times <= 0) {
-        throw `Function ${funcObject.FuncName} create/update failed`
-      }
-    }
-    if (status != 'Active') {
+    if ((await func.checkStatus('default', funcObject)) == false) {
       throw `Function ${funcObject.FuncName} create/update failed`
     }
 
@@ -101,18 +89,7 @@ class TencentDeployFunction {
     this.serverless.cli.log(`Setting tags for function ${funcObject.FuncName}`)
     await func.createTags('default', funcObject.FuncName, funcObject.Properties.Tags)
 
-    // Function status
-    status = 'Updating'
-    while (status == 'Updating' || status == 'Creating') {
-      const tempFunc = await func.getFunction('default', funcObject.FuncName)
-      status = tempFunc.Status
-      await utils.sleep(1000)
-      times = times - 1
-      if (times <= 0) {
-        throw `Function ${funcObject.FuncName} create/update failed`
-      }
-    }
-    if (status != 'Active') {
+    if ((await func.checkStatus('default', funcObject)) == false) {
       throw `Function ${funcObject.FuncName} create/update failed`
     }
 

@@ -88,8 +88,16 @@ class TencentRollback {
               const oldFunc = await func.deploy('default', funcObject)
               this.serverless.cli.log(`Rollback function ${funcObject.FuncName}`)
 
+              if ((await func.checkStatus('default', funcObject)) == false) {
+                throw `Function ${funcObject.FuncName} create/update failed`
+              }
+
               this.serverless.cli.log(`Rollback configure for function ${funcObject.FuncName}`)
               await func.updateConfiguration('default', oldFunc, funcObject)
+
+              if ((await func.checkStatus('default', funcObject)) == false) {
+                throw `Function ${funcObject.FuncName} create/update failed`
+              }
 
               this.serverless.cli.log(`Setting tags for function ${funcObject.FuncName}`)
               await func.createTags('default', funcObject.FuncName, funcObject.Properties.Tags)
