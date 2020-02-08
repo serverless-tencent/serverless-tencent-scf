@@ -130,6 +130,9 @@ class TencentDeployFunction {
     const functionInformation = await func.getFunction('default', deployFunctionName, false)
     if (functionInformation.Triggers && functionInformation.Triggers.length > 0) {
       for (let i = 0; i <= functionInformation.Triggers.length; i++) {
+        if ((await func.checkStatus('default', funcObject)) == false) {
+          throw `Function ${funcObject.FuncName} create/update failed`
+        }
         const thisTrigger = functionInformation.Triggers[i]
         try {
           if (thisTrigger.Type == 'apigw') {

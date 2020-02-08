@@ -112,11 +112,17 @@ class TencentDeploy {
       if (this.options.function && this.options.function != funcName) {
         continue
       }
+      const funcObject = _.cloneDeep(services.Resources.default[funcName])
+      funcObject.Name = funcName
+      funcObject.FuncName = this.provider.getFunctionName(funcName)
       const deployFunctionName = this.provider.getFunctionName(funcName)
       outputInformation = outputInformation + `  ${funcName}: ${deployFunctionName}\n`
       functionInformation = await func.getFunction('default', deployFunctionName, false)
       if (functionInformation.Triggers && functionInformation.Triggers.length > 0) {
         for (let i = 0; i <= functionInformation.Triggers.length; i++) {
+          if ((await func.checkStatus('default', funcObject)) == false) {
+            throw `Function ${funcObject.FuncName} create/update failed`
+          }
           const thisTrigger = functionInformation.Triggers[i]
           try {
             if (thisTrigger.Type == 'apigw') {
