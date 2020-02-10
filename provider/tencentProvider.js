@@ -105,7 +105,7 @@ class TencentProvider {
       const getUserAuthInfo = new GetUserAuthInfo()
       const result = await getUserAuthInfo.isAuth(uin, this.reportInputs)
       if (result['Error'] == true) {
-        console.log('Failed to get real name authentication result.')
+        console.log('未获取到实名认证结果，请重试。')
         process.exit(-1)
       } else {
         if (result['Message']['Authentication'] == 1) {
@@ -113,15 +113,15 @@ class TencentProvider {
         }
         const verifyUrl = 'https://cloud.tencent.com/verify/identity'
         console.log(
-          "You don't have real name authentication yet. You can open the url or scan QR code for real name authentication."
+          '系统检测您还未进行实名认证，请您扫描二下方二维码或者进入下方的地址，进行实名认证，实名认证之后可重新操作。'
         )
-        console.log('Real name authentication url: ')
+        console.log('实名认证地址: ')
         console.log('https://console.cloud.tencent.com/developer/auth')
-        console.log('Real name authentication QR code: ')
+        console.log('实名认证二维码: ')
         QRCode.toString(verifyUrl, { type: 'terminal' }, function(err, url) {
           console.log(url)
         })
-        console.log('Please re operate after real name authentication.')
+        console.log('请实名认证之后，重新执行本次操作。')
         process.exit(-1)
       }
     } catch (e) {
