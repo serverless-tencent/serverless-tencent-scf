@@ -27,7 +27,6 @@ class TencentIndex {
     this.serverless.pluginManager.addPlugin(TencentInfo)
     this.serverless.pluginManager.addPlugin(TencentLogs)
   }
-
 }
 
 module.exports = TencentIndex
